@@ -75,6 +75,13 @@ RabbitMQ 本地安装位置：
 
 - `http://127.0.0.1:5173`
 
+停止开发服务：
+
+```powershell
+.\scripts\dev\Stop-Backend.ps1
+.\scripts\dev\Stop-Frontend.ps1
+```
+
 ## 项目原则
 
 - 先实现简单、能运行、存在明确问题的 MySQL 版本。

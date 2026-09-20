@@ -238,6 +238,13 @@ http://127.0.0.1:5173
 http://localhost:8080
 ```
 
+停止服务：
+
+```powershell
+.\scripts\dev\Stop-Backend.ps1
+.\scripts\dev\Stop-Frontend.ps1
+```
+
 ## 10. 常见问题
 
 ### 10.1 MySQL 服务无法启动

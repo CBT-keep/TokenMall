@@ -12,10 +12,17 @@ New-Item -ItemType Directory -Path $hookDir -Force | Out-Null
 $hookPath = Join-Path $hookDir "post-commit"
 $hookContent = @'
 #!/bin/sh
-if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoProfile -ExecutionPolicy Bypass -File "scripts/knowledge/Update-KnowledgeIndex.ps1" -AppendSession -SessionTitle "Git Commit"
+subject=$(git log -1 --pretty=%s)
+if [ "$subject" = "chore: record knowledge session" ]; then
+  extra_args=""
 else
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "scripts/knowledge/Update-KnowledgeIndex.ps1" -AppendSession -SessionTitle "Git Commit"
+  extra_args="-AppendSession -SessionTitle Git_Commit"
+fi
+
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -NoProfile -ExecutionPolicy Bypass -File "scripts/knowledge/Update-KnowledgeIndex.ps1" $extra_args
+else
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "scripts/knowledge/Update-KnowledgeIndex.ps1" $extra_args
 fi
 '@
 

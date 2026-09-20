@@ -10,6 +10,7 @@ $vaultRoot = Join-Path $repoRoot "knowledge-vault"
 $homeRoot = Join-Path $vaultRoot "00-Home"
 $courseRoot = Join-Path $vaultRoot "02-Course"
 $logRoot = Join-Path $vaultRoot "09-Logs"
+$lf = "`n"
 
 function Write-ManagedSection {
     param(
@@ -26,7 +27,7 @@ function Write-ManagedSection {
 
     $raw = Get-Content -LiteralPath $resolvedPath -Raw -Encoding UTF8
     $pattern = "(?s)" + [regex]::Escape($StartMarker) + ".*?" + [regex]::Escape($EndMarker)
-    $replacement = $StartMarker + [Environment]::NewLine + $Content.Trim() + [Environment]::NewLine + $EndMarker
+    $replacement = $StartMarker + $lf + $Content.Trim() + $lf + $EndMarker
 
     if ($raw -match $pattern) {
         $updated = [regex]::Replace($raw, $pattern, [System.Text.RegularExpressions.MatchEvaluator]{
@@ -35,10 +36,10 @@ function Write-ManagedSection {
         })
     }
     else {
-        $updated = $raw.TrimEnd() + [Environment]::NewLine + [Environment]::NewLine + $replacement + [Environment]::NewLine
+        $updated = $raw.TrimEnd() + $lf + $lf + $replacement + $lf
     }
 
-    $normalized = $updated.TrimEnd() + [Environment]::NewLine
+    $normalized = $updated.TrimEnd() + $lf
     Set-Content -LiteralPath $resolvedPath -Value $normalized -Encoding UTF8 -NoNewline
 }
 
@@ -72,7 +73,7 @@ $courseSection = @{
     Path = (Join-Path $homeRoot "Course Index.md")
     StartMarker = "<!-- AUTO-COURSE-INDEX:START -->"
     EndMarker = "<!-- AUTO-COURSE-INDEX:END -->"
-    Content = ($courseContent -join [Environment]::NewLine)
+    Content = ($courseContent -join $lf)
 }
 Write-ManagedSection @courseSection
 
@@ -111,7 +112,7 @@ $developmentSection = @{
     Path = (Join-Path $homeRoot "Development Log.md")
     StartMarker = "<!-- AUTO-DEVELOPMENT-LOG:START -->"
     EndMarker = "<!-- AUTO-DEVELOPMENT-LOG:END -->"
-    Content = ($gitLines -join [Environment]::NewLine)
+    Content = ($gitLines -join $lf)
 }
 Write-ManagedSection @developmentSection
 
@@ -139,7 +140,7 @@ $questionsSection = @{
     Path = (Join-Path $homeRoot "Open Questions.md")
     StartMarker = "<!-- AUTO-OPEN-QUESTIONS:START -->"
     EndMarker = "<!-- AUTO-OPEN-QUESTIONS:END -->"
-    Content = ($openItems -join [Environment]::NewLine)
+    Content = ($openItems -join $lf)
 }
 Write-ManagedSection @questionsSection
 
@@ -179,10 +180,10 @@ if ($AppendSession) {
     }
 
     if ($existing -eq "") {
-        $newContent = ($entryLines -join [Environment]::NewLine).Trim()
+        $newContent = ($entryLines -join $lf).Trim()
     }
     else {
-        $newContent = ($existing + [Environment]::NewLine + ($entryLines -join [Environment]::NewLine)).Trim()
+        $newContent = ($existing + $lf + ($entryLines -join $lf)).Trim()
     }
 
     $sessionSection = @{

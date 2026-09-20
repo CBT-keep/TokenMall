@@ -11,6 +11,7 @@ $homeRoot = Join-Path $vaultRoot "00-Home"
 $courseRoot = Join-Path $vaultRoot "02-Course"
 $logRoot = Join-Path $vaultRoot "09-Logs"
 $lf = "`n"
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Write-ManagedSection {
     param(
@@ -40,7 +41,7 @@ function Write-ManagedSection {
     }
 
     $normalized = $updated.TrimEnd() + $lf
-    Set-Content -LiteralPath $resolvedPath -Value $normalized -Encoding UTF8 -NoNewline
+    [System.IO.File]::WriteAllText($resolvedPath, $normalized, $utf8NoBom)
 }
 
 $courseFiles = @()

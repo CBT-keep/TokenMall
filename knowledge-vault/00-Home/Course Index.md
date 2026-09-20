@@ -1,4 +1,4 @@
-﻿---
+---
 type: index
 status: active
 tags:

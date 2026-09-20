@@ -119,14 +119,14 @@ password: ChangeMe_123456
 
 ## 7. 验证项
 
-- [ ] `erl -version` 可以执行。
-- [ ] `rabbitmqctl status` 成功。
-- [ ] 5672 端口监听。
-- [ ] 15672 端口监听。
-- [ ] 管理界面可以登录。
-- [ ] `tokenmall` 虚拟主机存在。
-- [ ] `tokenmall_dev` 可以访问该虚拟主机。
-- [ ] 数据和日志位于 D 盘。
+- [x] `erl -version` 可以执行。
+- [x] `rabbitmqctl status` 成功。
+- [x] 5672 端口监听。
+- [x] 15672 端口监听。
+- [x] 管理 API 可以使用项目账号登录。
+- [x] `tokenmall` 虚拟主机存在。
+- [x] `tokenmall_dev` 可以访问该虚拟主机。
+- [x] 数据和日志位于 D 盘。
 
 ## 8. 常见问题
 

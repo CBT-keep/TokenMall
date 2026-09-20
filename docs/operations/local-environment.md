@@ -9,8 +9,8 @@
 | Maven | 3.9.14 |
 | MySQL | 8.0.34 |
 | Redis | 3.0.504 |
-| RabbitMQ | 待部署 4.3.6 |
-| Erlang | 待部署 OTP 28.5 |
+| RabbitMQ | 4.3.6，已部署到 `D:\DevTools\RabbitMQ` |
+| Erlang | OTP 28.5，已部署到 `D:\DevTools\RabbitMQ` |
 | Node.js | 24.13.0 |
 | npm | 11.6.2 |
 | pnpm | 11.9.0 |

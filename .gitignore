@@ -16,6 +16,9 @@ node_modules/
 dist/
 .vite/
 *.local
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # Environment and secrets
 .env
@@ -27,6 +30,7 @@ dist/
 logs/
 *.log
 data/
+*.pid
 
 # RabbitMQ local runtime
 .rabbitmq/

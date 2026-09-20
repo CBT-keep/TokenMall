@@ -1,0 +1,90 @@
+@baseUrl = http://localhost:8080/api/v1
+@token = replace-with-login-token
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "learner",
+  "password": "learner123",
+  "nickname": "学习者"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Current user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### Categories
+GET {{baseUrl}}/categories
+
+### Product list
+GET {{baseUrl}}/products?type=TOKEN_PACK&page=1&size=20
+
+### Product detail
+GET {{baseUrl}}/products/101
+
+### Add cart item
+POST {{baseUrl}}/cart/items
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "skuId": 1001,
+  "quantity": 1
+}
+
+### Cart
+GET {{baseUrl}}/cart
+Authorization: Bearer {{token}}
+
+### Create direct order
+POST {{baseUrl}}/orders/direct
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "skuId": 1001,
+  "quantity": 1,
+  "requestId": "direct-demo-001"
+}
+
+### Mock payment
+POST {{baseUrl}}/payments/mock/success
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "orderNo": "replace-with-order-no",
+  "requestId": "pay-demo-001"
+}
+
+### Token account
+GET {{baseUrl}}/token/account
+Authorization: Bearer {{token}}
+
+### Seckill activities
+GET {{baseUrl}}/seckill/activities
+
+### Seckill purchase
+POST {{baseUrl}}/seckill/activities/1/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "requestId": "seckill-demo-001",
+  "quantity": 1
+}
+
+### Admin dashboard
+GET {{baseUrl}}/admin/dashboard
+Authorization: Bearer {{token}}

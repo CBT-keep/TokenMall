@@ -211,10 +211,32 @@ $env:JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8'
 1. 启动 MySQL。
 2. 启动 Redis。
 3. 启动 RabbitMQ。
-4. 启动 Spring Boot。
-5. 启动 React 开发服务器。
+4. 启动 Spring Boot：
+
+```powershell
+.\scripts\dev\Start-Backend.ps1
+```
+
+5. 启动 React 开发服务器：
+
+```powershell
+.\scripts\dev\Start-Frontend.ps1
+```
+
 6. 打开 RabbitMQ Management UI。
 7. 打开 Obsidian 知识库。
+
+前端地址：
+
+```text
+http://127.0.0.1:5173
+```
+
+后端地址：
+
+```text
+http://localhost:8080
+```
 
 ## 10. 常见问题
 

@@ -13,6 +13,7 @@ tags:
 <!-- AUTO-DEVELOPMENT-LOG:START -->
 | 提交 | 日期 | 说明 |
 | --- | --- | --- |
+| 471ee17 | 2026-09-20 | docs: record scaffold development session |
 | 9fd6da9 | 2026-09-20 | fix: declare RabbitMQ topology on startup |
 | 6617405 | 2026-09-20 | feat: add backend CRUD and React frontend |
 | a574bbf | 2026-09-20 | docs: record RabbitMQ local setup |

@@ -1,0 +1,9 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "01-Daily",
+  "attachmentFolderPath": "99-Assets",
+  "showUnsupportedFiles": false,
+  "readableLineLength": true,
+  "strictLineBreaks": false
+}

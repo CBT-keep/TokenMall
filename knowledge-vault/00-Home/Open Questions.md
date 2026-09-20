@@ -1,0 +1,195 @@
+﻿---
+type: index
+status: active
+tags:
+  - tokenmall
+  - issue
+---
+
+# 未完成问题
+
+> 此文件从课程中的未完成复选框和 TODO 标记自动汇总。
+
+<!-- AUTO-OPEN-QUESTIONS:START -->
+- [[Day-01 - 环境、项目与领域认知]] line 83 - 启动 MySQL 服务。
+- [[Day-01 - 环境、项目与领域认知]] line 84 - 使用管理员账号执行 `db/01_schema.sql`。
+- [[Day-01 - 环境、项目与领域认知]] line 85 - 执行 `db/02_seed.sql`。
+- [[Day-01 - 环境、项目与领域认知]] line 86 - 执行 `db/03_create_dev_user.sql`。
+- [[Day-01 - 环境、项目与领域认知]] line 87 - 使用 `token_mall_dev` 登录数据库并查询商品和库存。
+- [[Day-01 - 环境、项目与领域认知]] line 88 - 启动 Redis，执行 `PING`。
+- [[Day-01 - 环境、项目与领域认知]] line 89 - 检查 RabbitMQ 服务和 Management UI。
+- [[Day-01 - 环境、项目与领域认知]] line 90 - 启动后端，确认日志没有连接和编码错误。
+- [[Day-01 - 环境、项目与领域认知]] line 91 - 启动前端，使用 `admin/admin123` 登录。
+- [[Day-01 - 环境、项目与领域认知]] line 92 - 调用商品列表、创建订单和模拟支付接口。
+- [[Day-01 - 环境、项目与领域认知]] line 122 - 四个基础设施组件状态明确。
+- [[Day-01 - 环境、项目与领域认知]] line 123 - 三个数据库脚本执行成功。
+- [[Day-01 - 环境、项目与领域认知]] line 124 - 管理员可以登录。
+- [[Day-01 - 环境、项目与领域认知]] line 125 - 前端能加载商品和秒杀活动。
+- [[Day-01 - 环境、项目与领域认知]] line 126 - 创建订单和模拟支付可以完成。
+- [[Day-01 - 环境、项目与领域认知]] line 127 - 能解释 MySQL、Redis、RabbitMQ 各自在项目中的职责。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 74 - 为一个完整商品列表请求画出调用链。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 75 - 找到商品新增、修改、上下架和逻辑删除接口。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 76 - 找到 SKU 新增和库存调整接口。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 77 - 打开 MyBatis SQL 日志，记录实际执行 SQL。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 78 - 使用 `EXPLAIN` 分析商品列表和详情查询。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 79 - 确认分页参数和统一响应结构。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 80 - 在前端管理页面新增一个测试商品并删除。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 135 - 能解释每个核心表的作用。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 136 - 能说出一个请求经过哪些层。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 137 - 能根据日志找到真实 SQL。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 138 - 能判断列表查询是否使用索引。
+- [[Day-02 - SQL、模块与简单 CRUD]] line 139 - 管理端基础 CRUD 可运行。
+- [[Day-03 - Spring Security 与 JWT]] line 69 - 注册一个普通用户。
+- [[Day-03 - Spring Security 与 JWT]] line 70 - 登录并复制 JWT。
+- [[Day-03 - Spring Security 与 JWT]] line 71 - 解析 JWT Payload，查看用户 ID、用户名、角色和过期时间。
+- [[Day-03 - Spring Security 与 JWT]] line 72 - 调用 `/api/v1/auth/me`。
+- [[Day-03 - Spring Security 与 JWT]] line 73 - 不带 Token 调用受保护接口，确认返回 401。
+- [[Day-03 - Spring Security 与 JWT]] line 74 - 使用普通用户调用管理端接口，确认返回 403。
+- [[Day-03 - Spring Security 与 JWT]] line 75 - 使用管理员调用管理端接口，确认成功。
+- [[Day-03 - Spring Security 与 JWT]] line 76 - 前端退出后清理 Token 并跳转登录页。
+- [[Day-03 - Spring Security 与 JWT]] line 110 - 注册和登录成功。
+- [[Day-03 - Spring Security 与 JWT]] line 111 - 密码为 BCrypt。
+- [[Day-03 - Spring Security 与 JWT]] line 112 - JWT 能正确签发和验证。
+- [[Day-03 - Spring Security 与 JWT]] line 113 - USER 和 ADMIN 权限隔离。
+- [[Day-03 - Spring Security 与 JWT]] line 114 - 前端可以自动附加 Token。
+- [[Day-03 - Spring Security 与 JWT]] line 115 - 401 和 403 前端表现正确。
+- [[Day-04 - 购物车、订单和模拟支付]] line 87 - 加入一个 Token 资源包到购物车。
+- [[Day-04 - 购物车、订单和模拟支付]] line 88 - 修改数量并结算。
+- [[Day-04 - 购物车、订单和模拟支付]] line 89 - 查看创建出的订单和订单项。
+- [[Day-04 - 购物车、订单和模拟支付]] line 90 - 检查库存是否减少。
+- [[Day-04 - 购物车、订单和模拟支付]] line 91 - 调用模拟支付成功。
+- [[Day-04 - 购物车、订单和模拟支付]] line 92 - 检查订单状态、支付记录、Token 余额和流水。
+- [[Day-04 - 购物车、订单和模拟支付]] line 93 - 直接购买一个 Token Plan，检查用户 Plan。
+- [[Day-04 - 购物车、订单和模拟支付]] line 94 - 取消一个待支付订单，检查库存恢复。
+- [[Day-04 - 购物车、订单和模拟支付]] line 116 - 完整购买流程能走通。
+- [[Day-04 - 购物车、订单和模拟支付]] line 117 - 订单状态变化符合状态机。
+- [[Day-04 - 购物车、订单和模拟支付]] line 118 - 资源包和 Plan 发放结果正确。
+- [[Day-04 - 购物车、订单和模拟支付]] line 119 - 能够指出至少四个一致性风险。
+- [[Day-04 - 购物车、订单和模拟支付]] line 120 - 能说明哪些问题留给 Redis、MQ 或 MySQL 阶段解决。
+- [[Day-05 - MySQL 并发与超卖]] line 134 - 初始版本可以稳定复现超卖。
+- [[Day-05 - MySQL 并发与超卖]] line 135 - 成功后 `初始库存 - 成功数量 = 剩余库存`。
+- [[Day-05 - MySQL 并发与超卖]] line 136 - 能解释 `SELECT FOR UPDATE` 为什么有效。
+- [[Day-05 - MySQL 并发与超卖]] line 137 - 能解释条件更新为什么不需要先查询。
+- [[Day-05 - MySQL 并发与超卖]] line 138 - 能使用 `EXPLAIN` 说明索引使用情况。
+- [[Day-05 - MySQL 并发与超卖]] line 139 - 记录修复前后成功数量和耗时。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 95 - 启动 RabbitMQ，访问 `http://localhost:15672`。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 96 - 使用 `guest/guest` 登录。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 97 - 创建 `mall.order.exchange`。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 98 - 创建 `mall.token.grant.queue`。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 99 - 使用 Routing Key `order.paid` 绑定。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 100 - 在 Spring Boot 中配置连接。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 101 - 发送一条 `order.paid` 测试事件。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 102 - 在管理台查看队列和消息。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 103 - 消费者手动 ACK 后确认消息消失。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 117 - 能解释 Exchange 和 Queue 的区别。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 118 - 能解释 Binding 和 Routing Key 的关系。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 119 - 能从管理台定位消息。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 120 - Spring Boot 能发送和消费消息。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 121 - 能解释 Ready 和 Unacked。
+- [[Day-06 - RabbitMQ 基础与拓扑]] line 122 - 能画出项目目标拓扑。
+- [[Day-07 - 异步支付和 Token 发放]] line 93 - 定义事件信封和 `OrderPaidEvent`。
+- [[Day-07 - 异步支付和 Token 发放]] line 94 - 支付成功后发布事件。
+- [[Day-07 - 异步支付和 Token 发放]] line 95 - 消费者反序列化事件。
+- [[Day-07 - 异步支付和 Token 发放]] line 96 - 删除控制器中同步发放 Token 的调用。
+- [[Day-07 - 异步支付和 Token 发放]] line 97 - 消费者处理资源包商品。
+- [[Day-07 - 异步支付和 Token 发放]] line 98 - 消费者处理 Token Plan 商品。
+- [[Day-07 - 异步支付和 Token 发放]] line 99 - 前端轮询订单或 Token 账户查看结果。
+- [[Day-07 - 异步支付和 Token 发放]] line 100 - 记录支付接口耗时变化。
+- [[Day-07 - 异步支付和 Token 发放]] line 140 - 支付和 Token 发放已经解耦。
+- [[Day-07 - 异步支付和 Token 发放]] line 141 - 资源包和 Plan 都能异步发放。
+- [[Day-07 - 异步支付和 Token 发放]] line 142 - 事件字段完整且可追踪。
+- [[Day-07 - 异步支付和 Token 发放]] line 143 - 能复现至少一种数据库和 MQ 不一致。
+- [[Day-07 - 异步支付和 Token 发放]] line 144 - 能说明最终一致性不是强一致性。
+- [[Day-08 - ACK、重试和死信]] line 81 - 消费者只使用手动 ACK。
+- [[Day-08 - ACK、重试和死信]] line 82 - 业务成功后显式 ACK。
+- [[Day-08 - ACK、重试和死信]] line 83 - 可重试异常抛出并进入重试。
+- [[Day-08 - ACK、重试和死信]] line 84 - 永久异常直接投递到 DLQ。
+- [[Day-08 - ACK、重试和死信]] line 85 - 配置 `mall.token.grant.dlq`。
+- [[Day-08 - ACK、重试和死信]] line 86 - 发送一条必然失败的消息。
+- [[Day-08 - ACK、重试和死信]] line 87 - 在 Management UI 查看重试和死信。
+- [[Day-08 - ACK、重试和死信]] line 88 - 修复原因后重放 DLQ 消息。
+- [[Day-08 - ACK、重试和死信]] line 119 - 消息不会因为异常静默丢失。
+- [[Day-08 - ACK、重试和死信]] line 120 - 重试次数有限。
+- [[Day-08 - ACK、重试和死信]] line 121 - 失败消息进入 DLQ。
+- [[Day-08 - ACK、重试和死信]] line 122 - 能根据 `eventId` 搜索日志。
+- [[Day-08 - ACK、重试和死信]] line 123 - 能解释何时应该 requeue，何时不应该。
+- [[Day-08 - ACK、重试和死信]] line 124 - 死信重放后业务结果正确。
+- [[Day-09 - 消费幂等与重复投递]] line 100 - 定义 `consumer_group`。
+- [[Day-09 - 消费幂等与重复投递]] line 101 - 使用 `eventId` 插入 `mq_consume_log`。
+- [[Day-09 - 消费幂等与重复投递]] line 102 - 捕获 MySQL 唯一键冲突。
+- [[Day-09 - 消费幂等与重复投递]] line 103 - 实现业务重复判断。
+- [[Day-09 - 消费幂等与重复投递]] line 104 - 记录原始消息和错误信息。
+- [[Day-09 - 消费幂等与重复投递]] line 105 - 重复发送同一事件两次。
+- [[Day-09 - 消费幂等与重复投递]] line 106 - 验证余额只增加一次。
+- [[Day-09 - 消费幂等与重复投递]] line 107 - 验证重复消息仍然 ACK。
+- [[Day-09 - 消费幂等与重复投递]] line 139 - 重复事件不会重复增加余额。
+- [[Day-09 - 消费幂等与重复投递]] line 140 - 消费日志有明确状态。
+- [[Day-09 - 消费幂等与重复投递]] line 141 - 能解释两个不同 `eventId` 为什么危险。
+- [[Day-09 - 消费幂等与重复投递]] line 142 - 重复消息最终被 ACK，不会无限堆积。
+- [[Day-09 - 消费幂等与重复投递]] line 143 - 发现并记录处理中崩溃的边界问题。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 143 - 创建订单时发送超时消息。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 144 - 延迟消息通过 DLX 进入关闭队列。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 145 - 消费者条件关闭订单。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 146 - 关闭成功时恢复库存。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 147 - 重复消息不会重复恢复库存。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 148 - 支付和关闭并发时只有一个成功。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 149 - 支付成功时在同一事务写 Outbox。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 150 - 扫描任务发布 Outbox 并更新状态。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 154 - 不再使用固定时间全表扫描关闭订单。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 155 - 超时订单在预期时间内关闭。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 156 - 已支付订单不会被关闭。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 157 - 库存恢复幂等。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 158 - 发送失败的 Outbox 可以重试。
+- [[Day-10 - 延迟队列、超时关闭和 Outbox]] line 159 - 能说明 Outbox 与直接发送消息的区别。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 103 - 配置 Redis 连接。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 104 - 封装统一的缓存 Key 工具。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 105 - 缓存商品详情 DTO，而不是数据库 Entity。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 106 - 缓存 Token Plan 的配额和有效期信息。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 107 - 查询命中时不再执行商品详情 SQL。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 108 - 商品修改后删除缓存。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 109 - 观察 Redis Key 和 TTL。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 110 - 记录缓存前后响应时间。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 137 - Redis 成功连接。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 138 - 商品详情支持缓存。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 139 - 缓存值不包含敏感数据。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 140 - TTL 和 Key 命名符合规范。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 141 - 能对比缓存前后数据库查询次数。
+- [[Day-11 - Redis 缓存与 Cache Aside]] line 142 - 能说明 Cache Aside 的一致性问题。
+- [[Day-12 - 缓存一致性与异常场景]] line 112 - 请求不存在的商品并记录 SQL 次数。
+- [[Day-12 - 缓存一致性与异常场景]] line 113 - 缓存空值并验证第二次请求不回源。
+- [[Day-12 - 缓存一致性与异常场景]] line 114 - 为商品 Key 加入随机 TTL。
+- [[Day-12 - 缓存一致性与异常场景]] line 115 - 让热点 Key 过期并并发回源。
+- [[Day-12 - 缓存一致性与异常场景]] line 116 - 使用锁或互斥重建限制回源数量。
+- [[Day-12 - 缓存一致性与异常场景]] line 117 - 商品更新后发布缓存失效事件。
+- [[Day-12 - 缓存一致性与异常场景]] line 118 - 消费者删除商品缓存。
+- [[Day-12 - 缓存一致性与异常场景]] line 119 - 记录缓存删除失败时如何重试。
+- [[Day-12 - 缓存一致性与异常场景]] line 132 - 能复现缓存穿透。
+- [[Day-12 - 缓存一致性与异常场景]] line 133 - 能复现热点 Key 击穿。
+- [[Day-12 - 缓存一致性与异常场景]] line 134 - 能构造批量同时过期。
+- [[Day-12 - 缓存一致性与异常场景]] line 135 - 能展示一次旧值读取。
+- [[Day-12 - 缓存一致性与异常场景]] line 136 - 能通过删除缓存恢复一致。
+- [[Day-12 - 缓存一致性与异常场景]] line 137 - 能说明缓存一致性不能简单依靠一个顺序解决。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 165 - 实现加锁、解锁和锁所有权校验。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 166 - 制造锁过期后业务继续执行。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 167 - 验证 Lua 解锁不会删除别人的锁。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 168 - 加载 Lua 库存扣减脚本。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 169 - 并发调用脚本并验证不会扣成负数。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 170 - 实现用户级限流。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 171 - 实现秒杀请求 ID 幂等。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 172 - 记录每个方案的失败窗口。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 176 - 能解释为什么解锁必须校验 Value。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 177 - 能解释 Redis 锁不是绝对可靠。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 178 - Lua 扣库存不会产生负数。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 179 - 限流阈值可验证。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 180 - 同一请求只处理一次。
+- [[Day-13 - 分布式锁、Lua、幂等与限流]] line 181 - 能说出锁、Lua 和数据库唯一键如何配合。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 190 - 同一用户重复请求只成功一次。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 191 - 活动库存不会被扣成负数。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 192 - MySQL 成功订单数量不超过活动库存。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 193 - Redis 扣减成功但订单创建失败可被发现。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 194 - MQ 失败消息可进入 DLQ。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 195 - 对账任务能输出差异。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 196 - 能对比基线、MySQL 修复和 Redis + MQ 三种方案。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 197 - 能画完整秒杀时序图。
+- [[Day-14 - 秒杀综合实现、对账与复盘]] line 198 - 能解释每一个失败窗口。
+<!-- AUTO-OPEN-QUESTIONS:END -->

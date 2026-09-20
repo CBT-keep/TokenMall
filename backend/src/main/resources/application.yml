@@ -22,6 +22,7 @@ spring:
     password: ${RABBITMQ_PASSWORD:ChangeMe_123456}
     virtual-host: ${RABBITMQ_VHOST:tokenmall}
     connection-timeout: 5s
+    dynamic: true
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss

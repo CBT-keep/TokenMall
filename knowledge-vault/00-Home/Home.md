@@ -17,6 +17,7 @@ tags:
 - [[Open Questions|未完成问题]]
 - [[Project References|项目文档索引]]
 - [[Graph Guide|图谱说明]]
+- [[2026-09-20 - 项目骨架会话]]
 
 ## 三条学习主线
 

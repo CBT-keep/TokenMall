@@ -28,4 +28,10 @@ Git 提交后由脚本追加会话摘要。
 - 时间：2026-09-20 22:40:11
 - 提交：6617405
 - 说明：feat: add backend CRUD and React frontend
+
+## Git_Commit
+
+- 时间：2026-09-20 22:44:26
+- 提交：9fd6da9
+- 说明：fix: declare RabbitMQ topology on startup
 <!-- AUTO-SESSIONS:END -->

@@ -94,6 +94,9 @@ try {
             foreach ($line in $logOutput) {
                 $parts = $line -split "\|", 3
                 if ($parts.Count -eq 3) {
+                    if ($parts[2] -match "^chore: record knowledge session") {
+                        continue
+                    }
                     $gitLines.Add("| $($parts[0]) | $($parts[1]) | $($parts[2]) |")
                 }
             }

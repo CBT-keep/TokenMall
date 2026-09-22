@@ -23,16 +23,19 @@ public class SeckillController {
 
     private final SeckillService seckillService;
 
+    // 获取秒杀活动列表
     @GetMapping("/activities")
     public ApiResponse<List<SeckillActivityResponse>> activities() {
         return ApiResponse.ok(seckillService.listPublic());
     }
 
+    // 获取秒杀活动详情
     @GetMapping("/activities/{activityId}")
     public ApiResponse<SeckillActivityResponse> activity(@PathVariable Long activityId) {
         return ApiResponse.ok(seckillService.detail(activityId));
     }
 
+    // 秒杀下单
     @PostMapping("/activities/{activityId}/orders")
     public ApiResponse<SeckillResultResponse> purchase(
             @PathVariable Long activityId,
@@ -41,6 +44,7 @@ public class SeckillController {
         return ApiResponse.ok(seckillService.purchase(SecurityUtils.currentUserId(), activityId, request));
     }
 
+    // 获取秒杀结果
     @GetMapping("/requests/{requestId}")
     public ApiResponse<SeckillResultResponse> result(@PathVariable String requestId) {
         return ApiResponse.ok(seckillService.result(SecurityUtils.currentUserId(), requestId));

@@ -24,6 +24,7 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    // 创建订单，从购物车
     @PostMapping
     public ApiResponse<OrderDetailResponse> createFromCart(
             @Valid @RequestBody CreateOrderFromCartRequest request
@@ -31,11 +32,13 @@ public class OrderController {
         return ApiResponse.ok(orderService.createFromCart(SecurityUtils.currentUserId(), request));
     }
 
+    // 创建订单，直接购买
     @PostMapping("/direct")
     public ApiResponse<OrderDetailResponse> createDirect(@Valid @RequestBody DirectOrderRequest request) {
         return ApiResponse.ok(orderService.createDirect(SecurityUtils.currentUserId(), request));
     }
 
+    // 订单列表，分页查询
     @GetMapping
     public ApiResponse<PageResult<OrderSummaryResponse>> list(
             @RequestParam(required = false) String status,
@@ -45,11 +48,13 @@ public class OrderController {
         return ApiResponse.ok(orderService.list(SecurityUtils.currentUserId(), status, page, size));
     }
 
+    // 订单详情，根据订单号查询
     @GetMapping("/{orderNo}")
     public ApiResponse<OrderDetailResponse> detail(@PathVariable String orderNo) {
         return ApiResponse.ok(orderService.detail(orderNo, SecurityUtils.currentUserId()));
     }
 
+    // 取消订单，根据订单号取消
     @PostMapping("/{orderNo}/cancel")
     public ApiResponse<Void> cancel(@PathVariable String orderNo) {
         orderService.cancel(orderNo, SecurityUtils.currentUserId());

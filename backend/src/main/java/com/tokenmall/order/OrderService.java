@@ -3,28 +3,24 @@ package com.tokenmall.order;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tokenmall.cart.CartService;
+import com.tokenmall.cart.entity.CartItem;
 import com.tokenmall.catalog.ProductService;
 import com.tokenmall.catalog.SkuService;
 import com.tokenmall.catalog.entity.Product;
 import com.tokenmall.catalog.entity.ProductSku;
-import com.tokenmall.cart.CartService;
-import com.tokenmall.cart.entity.CartItem;
 import com.tokenmall.common.exception.BusinessException;
 import com.tokenmall.common.exception.ErrorCode;
 import com.tokenmall.common.web.PageResult;
 import com.tokenmall.inventory.InventoryService;
-import com.tokenmall.order.dto.CreateOrderFromCartRequest;
-import com.tokenmall.order.dto.DirectOrderRequest;
-import com.tokenmall.order.dto.OrderDetailResponse;
-import com.tokenmall.order.dto.OrderItemResponse;
-import com.tokenmall.order.dto.OrderStatusLogResponse;
-import com.tokenmall.order.dto.OrderSummaryResponse;
+import com.tokenmall.order.dto.*;
 import com.tokenmall.order.entity.MallOrder;
 import com.tokenmall.order.entity.MallOrderItem;
 import com.tokenmall.order.entity.OrderStatusLog;
 import com.tokenmall.order.mapper.MallOrderItemMapper;
 import com.tokenmall.order.mapper.MallOrderMapper;
 import com.tokenmall.order.mapper.OrderStatusLogMapper;
+import com.tokenmall.order.utils.idUtil.IdUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,15 +28,11 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-
-    private static final DateTimeFormatter ORDER_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final MallOrderMapper orderMapper;
     private final MallOrderItemMapper orderItemMapper;
@@ -314,9 +306,11 @@ public class OrderService {
         }
     }
 
+    // 生成订单号
+    // 采用雪花算法，实现全局唯一订单号的优化
     private String nextOrderNo() {
-        String random = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
-        return "ORD" + LocalDateTime.now().format(ORDER_TIME_FORMAT) + random;
+        String id = String.valueOf(IdUtils.generateId());
+        return "ORD_" + id;
     }
 
     private record OrderLine(

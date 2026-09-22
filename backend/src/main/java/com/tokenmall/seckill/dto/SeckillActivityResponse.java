@@ -18,7 +18,7 @@ public record SeckillActivityResponse(
         LocalDateTime endTime,
         String status
 ) {
-
+    // 构建器方法
     public static SeckillActivityResponse from(SeckillActivity activity) {
         return new SeckillActivityResponse(
                 activity.getId(),

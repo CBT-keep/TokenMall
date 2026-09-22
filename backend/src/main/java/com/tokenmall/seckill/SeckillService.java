@@ -34,6 +34,8 @@ public class SeckillService {
     private final SkuService skuService;
     private final OrderService orderService;
 
+    // 获取秒杀活动列表
+    // TODO 这里的秒杀活动列表查询会被频繁访问，需要进行优化
     public List<SeckillActivityResponse> listPublic() {
         return activityMapper.selectList(
                         Wrappers.<SeckillActivity>lambdaQuery()
@@ -44,14 +46,13 @@ public class SeckillService {
                 .toList();
     }
 
+    // 获取秒杀活动详情
     public SeckillActivityResponse detail(Long activityId) {
         return SeckillActivityResponse.from(getActivity(activityId));
     }
 
     /**
-     * LEARNING-BASELINE MYSQL-03 and REDIS-08:
-     * The baseline reads sold_count from MySQL, updates it, and then creates the order.
-     * High concurrency can oversell and overload the database.
+     * 秒杀购买业务
      */
     @Transactional
     public SeckillResultResponse purchase(Long userId, Long activityId, SeckillRequest request) {
@@ -114,6 +115,7 @@ public class SeckillService {
         );
     }
 
+    // 秒杀结果查询
     public SeckillResultResponse result(Long userId, String requestId) {
         SeckillRecord record = recordMapper.selectOne(
                 Wrappers.<SeckillRecord>lambdaQuery()
@@ -132,6 +134,7 @@ public class SeckillService {
         );
     }
 
+    // 获取所有秒杀活动列表
     public List<SeckillActivityResponse> listAll() {
         return activityMapper.selectList(
                         Wrappers.<SeckillActivity>lambdaQuery()
@@ -141,6 +144,7 @@ public class SeckillService {
                 .toList();
     }
 
+    // 创建秒杀活动
     public SeckillActivity create(SeckillActivityRequest request) {
         SeckillActivity activity = new SeckillActivity();
         apply(activity, request);
@@ -150,6 +154,7 @@ public class SeckillService {
         return activity;
     }
 
+    // 更新秒杀活动
     public SeckillActivity update(Long activityId, SeckillActivityRequest request) {
         SeckillActivity activity = getActivity(activityId);
         apply(activity, request);
@@ -157,11 +162,13 @@ public class SeckillService {
         return activity;
     }
 
+    // 删除秒杀活动
     public void delete(Long activityId) {
         getActivity(activityId);
         activityMapper.deleteById(activityId);
     }
 
+    // 获取秒杀活动记录
     public List<SeckillRecord> records(Long activityId) {
         return recordMapper.selectList(
                 Wrappers.<SeckillRecord>lambdaQuery()
@@ -170,6 +177,8 @@ public class SeckillService {
         );
     }
 
+    // 获取秒杀活动详情
+    // TODO 这里的秒杀活动详情查询会被频繁访问，需要进行优化
     public SeckillActivity getActivity(Long activityId) {
         SeckillActivity activity = activityMapper.selectById(activityId);
         if (activity == null) {
@@ -178,6 +187,7 @@ public class SeckillService {
         return activity;
     }
 
+    // 应用秒杀活动请求
     private void apply(SeckillActivity activity, SeckillActivityRequest request) {
         if (request.endTime().isBefore(request.startTime())) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "结束时间不能早于开始时间");

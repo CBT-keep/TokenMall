@@ -1,5 +1,6 @@
 package com.tokenmall.catalog;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tokenmall.catalog.dto.ProductDetailResponse;
 import com.tokenmall.catalog.dto.ProductSummaryResponse;
 import com.tokenmall.common.web.ApiResponse;
@@ -30,7 +31,7 @@ public class ProductController {
             @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "1") long page,
             @RequestParam(defaultValue = "10") long size
-    ) {
+    ) throws JsonProcessingException {
         return ApiResponse.ok(productService.list(type, page, size));
     }
 

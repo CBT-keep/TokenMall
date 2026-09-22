@@ -45,10 +45,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authorization.substring(7);
             Claims claims = jwtService.parseToken(token);
             Long userId = jwtService.getUserId(claims);
+
+            // 通过本地缓存获取用户信息
             UserAuthSnapshot snapshot = userAuthCacheService.get(userId);
             if (!snapshot.enabled()) {
-                throw new DisabledException("User is disabled");
+                throw new DisabledException("用户已禁用");
             }
+
+            // 如果本地缓存中不存在用户信息，则从数据库中获取并放入本地缓存
             SecurityUser user = new SecurityUser(snapshot);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

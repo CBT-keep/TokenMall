@@ -4,6 +4,7 @@ public final class RedisKeys {
 
     public static final String PRODUCT_DETAIL = "mall:product:detail:";
     public static final String SKU_DETAIL = "mall:sku:detail:";
+    public static final String PRODUCT_LIST = "mall:product:list:";
     public static final String SECKILL_ACTIVITY = "mall:seckill:activity:";
     public static final String SECKILL_STOCK = "mall:seckill:stock:";
     public static final String SECKILL_USER = "mall:seckill:user:";

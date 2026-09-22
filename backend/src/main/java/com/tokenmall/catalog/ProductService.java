@@ -4,6 +4,9 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tokenmall.catalog.dto.ProductDetailResponse;
 import com.tokenmall.catalog.dto.ProductRequest;
 import com.tokenmall.catalog.dto.ProductSummaryResponse;
@@ -30,6 +33,7 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final SkuService skuService;
     private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     /**
      * 分页查询商品列表
@@ -38,7 +42,19 @@ public class ProductService {
      * @param size 每页大小
      * @return 商品信息摘要
      */
-    public PageResult<ProductSummaryResponse> list(String type, long page, long size) {
+    public PageResult<ProductSummaryResponse> list(String type, long page, long size) throws JsonProcessingException {
+        // 使用Redis缓存商品列表
+        String key= RedisKeys.PRODUCT_LIST + "page:" + page + ":size:" + size;
+        String json = redisTemplate.opsForValue().get(key);
+        // 缓存命中时直接返回
+        if (StringUtils.hasText(json)) {
+            return objectMapper.readValue(
+                    json,
+                    new TypeReference<PageResult<ProductSummaryResponse>>() {}
+            );
+        }
+
+        // 缓存未命中，查询数据库
         // 使用var来自动推断查询条件的类型
         // 创建查询条件对象（用Wrappers.lambdaQuery()方法创建）
         var query = Wrappers.<Product>lambdaQuery()
@@ -51,6 +67,11 @@ public class ProductService {
 
         // 使用Mybatis Plus的分页查询方法
         IPage<Product> result = productMapper.selectPage(Page.of(page, size), query);
+
+        // 将查询结果写入Redis缓存
+        redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(result), 10, TimeUnit.MINUTES);
+
+        // 返回分页结果
         return new PageResult<>(
                 result.getRecords().stream().map(ProductSummaryResponse::from).toList(),
                 result.getCurrent(),

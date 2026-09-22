@@ -46,4 +46,34 @@ Git 提交后由脚本追加会话摘要。
 - 时间：2026-09-20 22:47:17
 - 提交：a9cb74a
 - 说明：chore: add dev server stop scripts
+
+## Git_Commit
+
+- 时间：2026-09-22 10:17:05
+- 提交：4779e6b
+- 说明：椤圭洰鍒濆鍖栭樁娈碉紝鍩虹浠ｇ爜妗嗘灦寮€鍙
+
+## Git_Commit
+
+- 时间：2026-09-22 10:29:15
+- 提交：55eef59
+- 说明：feat: add one-click startup and desktop shortcuts
+
+## Git_Commit
+
+- 时间：2026-09-22 10:31:56
+- 提交：c689a78
+- 说明：fix: leave backend to IDEA in one-click startup
+
+## Git_Commit
+
+- 时间：2026-09-22 11:01:27
+- 提交：f33dc2d
+- 说明：feat: cache JWT user authentication with caffeine and redis
+
+## Git_Commit
+
+- 时间：2026-09-22 11:02:00
+- 提交：f619e9f
+- 说明：feat: cache JWT user authentication with caffeine and redis
 <!-- AUTO-SESSIONS:END -->

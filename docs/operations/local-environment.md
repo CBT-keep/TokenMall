@@ -208,7 +208,9 @@ $env:JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8'
 
 ## 9. 每日启动顺序
 
-推荐直接双击桌面快捷方式 `TokenMall 一键启动`。它会自动处理下面的启动顺序，并跳过已经运行的服务。
+推荐直接双击桌面快捷方式 `TokenMall 一键启动`。它会启动 MySQL、RabbitMQ、Redis 和前端，并跳过已经运行的服务。
+
+后端不在一键启动范围内。请在 IntelliJ IDEA 中运行或调试 `TokenMallApplication`，这样可以直接使用断点。
 
 1. 启动 MySQL。
 2. 启动 Redis。
@@ -247,11 +249,13 @@ http://localhost:8080
 .\scripts\dev\Stop-Frontend.ps1
 ```
 
-一键停止所有应用服务：
+一键停止辅助服务：
 
 ```powershell
 .\scripts\dev\Stop-All.ps1
 ```
+
+该命令不会停止 IDEA 管理的后端。
 
 ## 10. 常见问题
 

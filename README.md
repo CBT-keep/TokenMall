@@ -68,6 +68,8 @@ RabbitMQ 本地安装位置：
 
 最简单方式：双击桌面快捷方式 `TokenMall 一键启动`。
 
+一键启动会启动 MySQL、RabbitMQ、Redis 和前端，不会启动后端。后端请在 IntelliJ IDEA 中运行或调试 `TokenMallApplication`。
+
 也可以双击项目根目录：
 
 - `启动TokenMall.cmd`
@@ -97,11 +99,13 @@ RabbitMQ 本地安装位置：
 .\scripts\dev\Start-All.ps1
 ```
 
-一键停止应用服务：
+一键停止辅助服务：
 
 ```powershell
 .\scripts\dev\Stop-All.ps1
 ```
+
+该命令会停止前端、Redis 和 RabbitMQ，不会停止 IDEA 管理的后端。
 
 ## 项目原则
 

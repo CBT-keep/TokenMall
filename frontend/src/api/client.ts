@@ -3,9 +3,10 @@ import type { ApiResponse } from '../types/api';
 
 const TOKEN_KEY = 'tokenmall.accessToken';
 const USER_KEY = 'tokenmall.user';
+export const AUTH_EXPIRED_EVENT = 'tokenmall:auth-expired';
 
 export const client = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   timeout: 15000,
 });
 
@@ -21,11 +22,8 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      clearSession();
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
     }
     return Promise.reject(error);
   },
@@ -57,6 +55,10 @@ export function getStoredToken(): string | null {
 
 export function storeSession(token: string, user: unknown): void {
   localStorage.setItem(TOKEN_KEY, token);
+  storeUser(user);
+}
+
+export function storeUser(user: unknown): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 

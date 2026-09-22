@@ -10,31 +10,40 @@ export default function TokenAccountPage() {
   const [plans, setPlans] = useState<TokenPlan[]>([]);
   const [transactions, setTransactions] = useState<TokenTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm<{ amount: number; description?: string }>();
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    Promise.all([getTokenAccount(), listTokenPlans(), listTokenTransactions()])
-      .then(([accountData, planData, transactionData]) => {
-        setAccount(accountData);
-        setPlans(planData);
-        setTransactions(transactionData);
-      })
-      .catch((error) => message.error(errorMessage(error)))
-      .finally(() => setLoading(false));
+    try {
+      const [accountData, planData, transactionData] = await Promise.all([
+        getTokenAccount(),
+        listTokenPlans(),
+        listTokenTransactions(),
+      ]);
+      setAccount(accountData);
+      setPlans(planData);
+      setTransactions(transactionData);
+    } catch (error) {
+      message.error(errorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(load, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   return (
     <div className="page-shell">
       <h1 className="page-title">Token 账户</h1>
       <p className="page-subtitle">查看资源包余额、Plan 配额和流水。</p>
       <div className="metric-grid">
-        <Card><Statistic title="资源包余额" value={account?.packBalance ?? 0} /></Card>
-        <Card><Statistic title="Plan 余额" value={account?.planBalance ?? 0} /></Card>
-        <Card><Statistic title="累计购买" value={account?.totalPurchased ?? 0} /></Card>
-        <Card><Statistic title="累计消费" value={account?.totalConsumed ?? 0} /></Card>
+        <Card><Statistic title="资源包余额" value={account?.packBalance ?? '-'} loading={loading} /></Card>
+        <Card><Statistic title="Plan 余额" value={account?.planBalance ?? '-'} loading={loading} /></Card>
+        <Card><Statistic title="累计购买" value={account?.totalPurchased ?? '-'} loading={loading} /></Card>
+        <Card><Statistic title="累计消费" value={account?.totalConsumed ?? '-'} loading={loading} /></Card>
       </div>
 
       <Card title="我的 Token Plan" className="section">
@@ -43,6 +52,7 @@ export default function TokenAccountPage() {
           loading={loading}
           pagination={false}
           dataSource={plans}
+          scroll={{ x: 'max-content' }}
           columns={[
             { title: '总配额', dataIndex: 'totalQuota' },
             { title: '已使用', dataIndex: 'usedQuota' },
@@ -59,22 +69,26 @@ export default function TokenAccountPage() {
           form={form}
           layout="inline"
           onFinish={async (values) => {
+            setSubmitting(true);
             try {
               await consumeTokens(values.amount, newRequestId('consume'), values.description);
               message.success('消费成功');
-              load();
+              form.resetFields();
+              await load();
             } catch (error) {
               message.error(errorMessage(error));
+            } finally {
+              setSubmitting(false);
             }
           }}
         >
           <Form.Item name="amount" rules={[{ required: true }]}>
-            <InputNumber min={1} placeholder="消费数量" />
+            <InputNumber min={1} placeholder="消费数量" disabled={submitting} />
           </Form.Item>
           <Form.Item name="description">
-            <Input placeholder="说明，可选" />
+            <Input placeholder="说明，可选" disabled={submitting} />
           </Form.Item>
-          <Button type="primary" htmlType="submit">消费</Button>
+          <Button type="primary" htmlType="submit" loading={submitting}>消费</Button>
         </Form>
       </Card>
 
@@ -84,6 +98,7 @@ export default function TokenAccountPage() {
           loading={loading}
           pagination={false}
           dataSource={transactions}
+          scroll={{ x: 'max-content' }}
           columns={[
             { title: '时间', dataIndex: 'createdAt' },
             { title: '类型', dataIndex: 'transactionType' },

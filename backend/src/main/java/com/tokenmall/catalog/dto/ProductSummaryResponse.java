@@ -4,6 +4,9 @@ import com.tokenmall.catalog.entity.Product;
 
 import java.math.BigDecimal;
 
+/**
+ * 商品的摘要信息
+ */
 public record ProductSummaryResponse(
         Long id,
         Long categoryId,

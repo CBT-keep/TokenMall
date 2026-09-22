@@ -100,9 +100,6 @@ export default function LoginPage() {
             },
           ]}
         />
-        <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
-          管理员种子账号：admin / admin123
-        </Typography.Paragraph>
       </Card>
     </div>
   );

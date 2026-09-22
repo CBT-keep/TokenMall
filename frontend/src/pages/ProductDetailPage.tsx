@@ -16,7 +16,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [skuId, setSkuId] = useState<number>();
   const [quantity, setQuantity] = useState(1);
-  const [submitting, setSubmitting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'cart' | 'buy'>();
 
   useEffect(() => {
     if (!id) {
@@ -35,20 +35,21 @@ export default function ProductDetailPage() {
     () => product?.skus.find((sku) => sku.id === skuId),
     [product, skuId],
   );
+  const selectedStock = selectedSku?.availableStock ?? 0;
 
   const addToCart = async () => {
     if (!selectedSku) {
       message.warning('请选择 SKU');
       return;
     }
-    setSubmitting(true);
+    setPendingAction('cart');
     try {
       await addCartItem(selectedSku.id, quantity);
       message.success('已加入购物车');
     } catch (error) {
       message.error(errorMessage(error));
     } finally {
-      setSubmitting(false);
+      setPendingAction(undefined);
     }
   };
 
@@ -57,14 +58,14 @@ export default function ProductDetailPage() {
       message.warning('请选择 SKU');
       return;
     }
-    setSubmitting(true);
+    setPendingAction('buy');
     try {
       const order = await createDirectOrder(selectedSku.id, quantity, newRequestId('direct'));
       navigate(`/orders/${order.orderNo}`);
     } catch (error) {
       message.error(errorMessage(error));
     } finally {
-      setSubmitting(false);
+      setPendingAction(undefined);
     }
   };
 
@@ -101,7 +102,13 @@ export default function ProductDetailPage() {
 
         <div className="section">
           <Typography.Title level={5}>选择 SKU</Typography.Title>
-          <Radio.Group value={skuId} onChange={(event) => setSkuId(event.target.value)}>
+          <Radio.Group
+            value={skuId}
+            onChange={(event) => {
+              setSkuId(event.target.value);
+              setQuantity(1);
+            }}
+          >
             <Space wrap>
               {product.skus.map((sku) => (
                 <Radio.Button key={sku.id} value={sku.id} disabled={sku.status !== 1}>
@@ -116,12 +123,19 @@ export default function ProductDetailPage() {
           <Space size="large" wrap>
             <Space>
               <Typography.Text>数量</Typography.Text>
-              <InputNumber min={1} value={quantity} onChange={(value) => setQuantity(value ?? 1)} />
+              <InputNumber
+                min={1}
+                max={selectedStock}
+                value={quantity}
+                disabled={!selectedSku || selectedStock <= 0 || !!pendingAction}
+                onChange={(value) => setQuantity(value ?? 1)}
+              />
             </Space>
             <Button
               icon={<ShoppingCartOutlined />}
               onClick={addToCart}
-              loading={submitting}
+              loading={pendingAction === 'cart'}
+              disabled={!selectedSku || selectedStock <= 0 || pendingAction === 'buy'}
             >
               加入购物车
             </Button>
@@ -129,7 +143,8 @@ export default function ProductDetailPage() {
               type="primary"
               icon={<ThunderboltOutlined />}
               onClick={buyNow}
-              loading={submitting}
+              loading={pendingAction === 'buy'}
+              disabled={!selectedSku || selectedStock <= 0 || pendingAction === 'cart'}
             >
               立即购买
             </Button>

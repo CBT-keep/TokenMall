@@ -20,9 +20,10 @@ public record ProductDetailResponse(
         Long planQuota,
         Integer purchaseLimit,
         Integer status,
-        List<SkuResponse> skus
+        List<SkuResponse> skus  // SKU是商品的销售属性
 ) {
 
+    // 根据商品和SKU列表，返回商品详情响应对象
     public static ProductDetailResponse from(Product product, List<SkuResponse> skus) {
         return new ProductDetailResponse(
                 product.getId(),

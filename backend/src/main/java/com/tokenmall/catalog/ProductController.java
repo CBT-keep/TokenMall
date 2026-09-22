@@ -18,6 +18,13 @@ public class ProductController {
 
     private final ProductService productService;
 
+    /**
+     * 列出所有商品
+     * @param type 商品类型
+     * @param page 页码
+     * @param size 每页大小
+     * @return 商品列表
+     */
     @GetMapping
     public ApiResponse<PageResult<ProductSummaryResponse>> list(
             @RequestParam(required = false) String type,
@@ -27,6 +34,11 @@ public class ProductController {
         return ApiResponse.ok(productService.list(type, page, size));
     }
 
+    /**
+     * 获取商品详情
+     * @param id 商品ID
+     * @return 商品详情
+     */
     @GetMapping("/{id}")
     public ApiResponse<ProductDetailResponse> detail(@PathVariable Long id) {
         return ApiResponse.ok(productService.detail(id));

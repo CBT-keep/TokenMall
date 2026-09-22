@@ -7,6 +7,7 @@ import type {
   PageResult,
   ProductSummary,
   SeckillActivity,
+  SeckillRecord,
   Sku,
 } from '../types/api';
 
@@ -89,6 +90,6 @@ export function deleteSeckillActivity(id: number): Promise<void> {
   return del<void>(`/admin/seckill/activities/${id}`);
 }
 
-export function getSeckillRecords(id: number): Promise<unknown[]> {
-  return get<unknown[]>(`/admin/seckill/activities/${id}/records`);
+export function getSeckillRecords(id: number): Promise<SeckillRecord[]> {
+  return get<SeckillRecord[]>(`/admin/seckill/activities/${id}/records`);
 }

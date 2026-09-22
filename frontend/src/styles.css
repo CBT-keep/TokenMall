@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -19,11 +23,15 @@ a {
 
 .page-shell {
   width: min(1180px, calc(100% - 32px));
+  min-height: calc(100vh - 64px);
   margin: 0 auto;
   padding: 24px 0 48px;
 }
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -43,6 +51,7 @@ a {
 
 .user-chip {
   cursor: pointer;
+  padding: 0 4px;
 }
 
 .admin-brand {
@@ -96,6 +105,7 @@ a {
   color: #d4380d;
   font-size: 22px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .muted {
@@ -135,12 +145,53 @@ a {
 }
 
 @media (max-width: 720px) {
+  .site-header.ant-layout-header {
+    height: auto;
+    min-height: 64px;
+    padding: 8px 12px;
+    gap: 8px;
+    line-height: normal;
+    flex-wrap: wrap;
+  }
+
+  .site-header .ant-menu-horizontal {
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+    line-height: 46px;
+    border-bottom: 0;
+    overflow-x: auto;
+  }
+
+  .site-header > .ant-space {
+    margin-left: auto;
+  }
+
+  .site-header .user-chip .ant-typography {
+    display: none;
+  }
+
   .page-shell {
     width: min(100% - 20px, 1180px);
     padding-top: 16px;
   }
 
   .admin-content {
-    padding: 16px;
+    padding: 12px;
+  }
+
+  .admin-header.ant-layout-header {
+    height: auto;
+    min-height: 64px;
+    padding: 8px 12px;
+    gap: 12px;
+    line-height: normal;
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }

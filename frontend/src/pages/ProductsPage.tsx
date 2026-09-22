@@ -1,7 +1,8 @@
-import { Card, Empty, Radio, Skeleton, Space, Typography } from 'antd';
+import { Button, Card, Empty, message, Radio, Skeleton, Space, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { listProducts } from '../api/catalog';
+import { errorMessage } from '../api/client';
 import type { ProductSummary } from '../types/api';
 
 export default function ProductsPage() {
@@ -11,10 +12,21 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
     listProducts(type || undefined, 1, 50)
-      .then((page) => setProducts(page.records))
-      .finally(() => setLoading(false));
+      .then((page) => {
+        if (active) setProducts(page.records);
+      })
+      .catch((error) => {
+        if (active) message.error(errorMessage(error));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [type]);
 
   return (
@@ -51,7 +63,9 @@ export default function ProductsPage() {
                     ? `${product.tokenAmount?.toLocaleString()} Token`
                     : `${product.planDays} 天 / ${product.planQuota?.toLocaleString()} Token`}
                 </Typography.Text>
-                <Link to={`/products/${product.id}`}>查看详情</Link>
+                <Link to={`/products/${product.id}`}>
+                  <Button block>查看详情</Button>
+                </Link>
               </Space>
             </Card>
           ))}

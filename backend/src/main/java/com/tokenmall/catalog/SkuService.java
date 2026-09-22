@@ -21,6 +21,7 @@ public class SkuService {
     private final ProductSkuMapper skuMapper;
     private final InventoryMapper inventoryMapper;
 
+    // 根据商品ID查询SKU列表
     public List<ProductSku> listByProduct(Long productId) {
         return skuMapper.selectList(
                 Wrappers.<ProductSku>lambdaQuery()
@@ -29,6 +30,7 @@ public class SkuService {
         );
     }
 
+    // 查询所有SKU及库存信息
     public List<SkuResponse> listAllWithInventory() {
         return skuMapper.selectList(
                         Wrappers.<ProductSku>lambdaQuery().orderByAsc(ProductSku::getId)
@@ -37,6 +39,7 @@ public class SkuService {
                 .toList();
     }
 
+    // 创建SKU，SKU是商品的属性
     public ProductSku create(SkuRequest request) {
         ProductSku sku = new ProductSku();
         apply(sku, request);
@@ -53,6 +56,7 @@ public class SkuService {
         return sku;
     }
 
+    // 更新SKU
     public ProductSku update(Long id, SkuRequest request) {
         ProductSku sku = get(id);
         apply(sku, request);
@@ -60,6 +64,7 @@ public class SkuService {
         return sku;
     }
 
+    // 根据ID获取SKU
     public ProductSku get(Long id) {
         ProductSku sku = skuMapper.selectById(id);
         if (sku == null) {
@@ -68,6 +73,7 @@ public class SkuService {
         return sku;
     }
 
+    // 将ProductSku转换为SkuResponse
     public SkuResponse toResponse(ProductSku sku) {
         Inventory inventory = inventoryMapper.selectOne(
                 Wrappers.<Inventory>lambdaQuery().eq(Inventory::getSkuId, sku.getId())
@@ -83,6 +89,7 @@ public class SkuService {
         );
     }
 
+    // 应用SkuRequest到ProductSku
     private void apply(ProductSku sku, SkuRequest request) {
         sku.setProductId(request.productId());
         sku.setSkuCode(request.skuCode());

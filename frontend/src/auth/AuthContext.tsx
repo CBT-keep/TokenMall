@@ -1,6 +1,13 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import * as authApi from '../api/auth';
-import { clearSession, getStoredToken, getStoredUser, storeSession } from '../api/client';
+import {
+  AUTH_EXPIRED_EVENT,
+  clearSession,
+  getStoredToken,
+  getStoredUser,
+  storeSession,
+  storeUser,
+} from '../api/client';
 import type { UserView } from '../types/api';
 
 interface AuthContextValue {
@@ -18,6 +25,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => getStoredToken());
   const [user, setUser] = useState<UserView | null>(() => getStoredUser<UserView>());
 
+  useEffect(() => {
+    const handleExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       token,
@@ -34,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async refreshUser() {
         const current = await authApi.currentUser();
-        localStorage.setItem('tokenmall.user', JSON.stringify(current));
+        storeUser(current);
         setUser(current);
         return current;
       },

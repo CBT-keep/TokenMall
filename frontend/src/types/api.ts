@@ -188,6 +188,19 @@ export interface SeckillResult {
   message?: string;
 }
 
+export interface SeckillRecord {
+  id: number;
+  activityId: number;
+  userId: number;
+  orderNo: string;
+  requestId: string;
+  quantity: number;
+  status: string;
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardData {
   productCount: number;
   pendingOrderCount: number;

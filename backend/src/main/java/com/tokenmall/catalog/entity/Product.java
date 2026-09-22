@@ -29,7 +29,7 @@ public class Product {
     private Integer purchaseLimit;
     private Integer status;
     private Integer sortOrder;
-    @TableLogic
+    @TableLogic // 逻辑删除
     private Integer deleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

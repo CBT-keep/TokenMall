@@ -1,6 +1,6 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Empty, InputNumber, message, Space, Table, Typography } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteCartItem, listCart, updateCartItem } from '../api/cart';
 import { errorMessage } from '../api/client';
@@ -12,21 +12,30 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<number, number | null>>({});
+  const [updatingIds, setUpdatingIds] = useState<number[]>([]);
+  const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const quantityRequests = useRef(new Map<number, Promise<CartItem>>());
 
-  const load = () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    listCart()
-      .then((data) => {
-        setItems(data);
-        setSelectedIds((current) => current.filter((id) => data.some((item) => item.id === id)));
-      })
-      .catch((error) => message.error(errorMessage(error)))
-      .finally(() => setLoading(false));
-  };
+    try {
+      const data = await listCart();
+      setItems(data);
+      setQuantityDrafts({});
+      setSelectedIds((current) => current.filter((id) => data.some((item) => item.id === id)));
+    } catch (error) {
+      message.error(errorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  useEffect(load, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const selectedTotal = useMemo(
     () =>
@@ -36,6 +45,67 @@ export default function CartPage() {
     [items, selectedIds],
   );
 
+  const persistQuantity = (item: CartItem, quantity: number): Promise<CartItem> => {
+    const currentRequest = quantityRequests.current.get(item.id);
+    if (currentRequest) {
+      return currentRequest;
+    }
+
+    const request = updateCartItem(item.id, quantity, item.selected === 1)
+      .then((updated) => {
+        setItems((current) => current.map((currentItem) => (
+          currentItem.id === item.id ? updated : currentItem
+        )));
+        return updated;
+      })
+      .finally(() => {
+        quantityRequests.current.delete(item.id);
+      });
+    quantityRequests.current.set(item.id, request);
+    return request;
+  };
+
+  const commitQuantity = async (item: CartItem): Promise<boolean> => {
+    const quantity = quantityDrafts[item.id];
+    if (quantity == null || quantity === item.quantity) {
+      setQuantityDrafts((current) => ({ ...current, [item.id]: null }));
+      return true;
+    }
+
+    setUpdatingIds((current) => (
+      current.includes(item.id) ? current : [...current, item.id]
+    ));
+    try {
+      await persistQuantity(item, quantity);
+      setQuantityDrafts((current) => ({ ...current, [item.id]: null }));
+      return true;
+    } catch (error) {
+      message.error(errorMessage(error));
+      setQuantityDrafts((current) => ({ ...current, [item.id]: null }));
+      return false;
+    } finally {
+      setUpdatingIds((current) => current.filter((id) => id !== item.id));
+    }
+  };
+
+  const removeItem = async (item: CartItem) => {
+    setDeletingIds((current) => [...current, item.id]);
+    try {
+      await deleteCartItem(item.id);
+      setItems((current) => current.filter((currentItem) => currentItem.id !== item.id));
+      setSelectedIds((current) => current.filter((id) => id !== item.id));
+      setQuantityDrafts((current) => {
+        const next = { ...current };
+        delete next[item.id];
+        return next;
+      });
+    } catch (error) {
+      message.error(errorMessage(error));
+    } finally {
+      setDeletingIds((current) => current.filter((id) => id !== item.id));
+    }
+  };
+
   const submit = async () => {
     if (!selectedIds.length) {
       message.warning('请选择要结算的商品');
@@ -43,6 +113,15 @@ export default function CartPage() {
     }
     setSubmitting(true);
     try {
+      const pendingItems = items.filter((item) => (
+        selectedIds.includes(item.id)
+        && quantityDrafts[item.id] != null
+        && quantityDrafts[item.id] !== item.quantity
+      ));
+      const commits = await Promise.all(pendingItems.map((item) => commitQuantity(item)));
+      if (commits.some((committed) => !committed)) {
+        return;
+      }
       const order = await createOrderFromCart(selectedIds, newRequestId('cart'));
       navigate(`/orders/${order.orderNo}`);
     } catch (error) {
@@ -64,9 +143,12 @@ export default function CartPage() {
             rowKey="id"
             loading={loading}
             dataSource={items}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
             rowSelection={{
               selectedRowKeys: selectedIds,
               onChange: (keys) => setSelectedIds(keys.map(Number)),
+              getCheckboxProps: (item) => ({ disabled: deletingIds.includes(item.id) }),
             }}
             columns={[
               { title: '商品', dataIndex: 'productName' },
@@ -77,13 +159,14 @@ export default function CartPage() {
                 render: (_, item) => (
                   <InputNumber
                     min={1}
-                    max={item.availableStock}
-                    value={item.quantity}
-                    onChange={async (value) => {
-                      if (!value) return;
-                      await updateCartItem(item.id, value, item.selected === 1);
-                      load();
+                    max={Math.max(item.availableStock, 1)}
+                    value={quantityDrafts[item.id] ?? item.quantity}
+                    disabled={updatingIds.includes(item.id)}
+                    onChange={(value) => {
+                      setQuantityDrafts((current) => ({ ...current, [item.id]: value }));
                     }}
+                    onBlur={() => void commitQuantity(item)}
+                    onPressEnter={() => void commitQuantity(item)}
                   />
                 ),
               },
@@ -98,10 +181,8 @@ export default function CartPage() {
                     type="text"
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={async () => {
-                      await deleteCartItem(item.id);
-                      load();
-                    }}
+                    loading={deletingIds.includes(item.id)}
+                    onClick={() => void removeItem(item)}
                   />
                 ),
               },
@@ -112,8 +193,13 @@ export default function CartPage() {
               已选金额：<span className="price">¥{selectedTotal.toFixed(2)}</span>
             </Typography.Text>
             <Space>
-              <Button onClick={load}>刷新</Button>
-              <Button type="primary" loading={submitting} onClick={submit}>
+              <Button onClick={() => void load()} loading={loading}>刷新</Button>
+              <Button
+                type="primary"
+                loading={submitting}
+                disabled={!selectedIds.length || loading}
+                onClick={submit}
+              >
                 去结算
               </Button>
             </Space>

@@ -66,6 +66,15 @@ RabbitMQ 本地安装位置：
 
 本地开发服务：
 
+最简单方式：双击桌面快捷方式 `TokenMall 一键启动`。
+
+也可以双击项目根目录：
+
+- `启动TokenMall.cmd`
+- `停止TokenMall.cmd`
+
+命令行方式：
+
 ```powershell
 .\scripts\dev\Start-Backend.ps1
 .\scripts\dev\Start-Frontend.ps1
@@ -80,6 +89,18 @@ RabbitMQ 本地安装位置：
 ```powershell
 .\scripts\dev\Stop-Backend.ps1
 .\scripts\dev\Stop-Frontend.ps1
+```
+
+一键启动全部服务：
+
+```powershell
+.\scripts\dev\Start-All.ps1
+```
+
+一键停止应用服务：
+
+```powershell
+.\scripts\dev\Stop-All.ps1
 ```
 
 ## 项目原则

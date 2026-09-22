@@ -25,9 +25,8 @@ public class JwtService {
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(properties.getExpiresSeconds());
         return Jwts.builder()
-                .subject(user.getUsername())
+                .subject(String.valueOf(user.getId()))
                 .claim("uid", user.getId())
-                .claim("role", user.getRole())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
                 .signWith(key)
@@ -44,5 +43,13 @@ public class JwtService {
 
     public long getExpiresSeconds() {
         return properties.getExpiresSeconds();
+    }
+
+    public Long getUserId(Claims claims) {
+        Object uid = claims.get("uid");
+        if (uid instanceof Number number) {
+            return number.longValue();
+        }
+        return Long.valueOf(claims.getSubject());
     }
 }

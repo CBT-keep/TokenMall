@@ -43,6 +43,10 @@ tokenmall:
   jwt:
     secret: ${JWT_SECRET:tokenmall-local-dev-secret-change-me-32-bytes}
     expires-seconds: ${JWT_EXPIRES_SECONDS:7200}
+  auth-cache:
+    local-ttl-seconds: ${AUTH_LOCAL_CACHE_TTL_SECONDS:300}
+    redis-ttl-seconds: ${AUTH_REDIS_CACHE_TTL_SECONDS:1800}
+    local-maximum-size: ${AUTH_LOCAL_CACHE_MAX_SIZE:10000}
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:5173}
 

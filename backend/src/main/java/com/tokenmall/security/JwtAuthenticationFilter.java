@@ -1,7 +1,6 @@
 package com.tokenmall.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tokenmall.auth.CustomUserDetailsService;
 import com.tokenmall.common.exception.ErrorCode;
 import com.tokenmall.common.web.ApiResponse;
 import io.jsonwebtoken.Claims;
@@ -12,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,7 +26,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    private final UserAuthCacheService userAuthCacheService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -44,12 +44,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = authorization.substring(7);
             Claims claims = jwtService.parseToken(token);
-            SecurityUser user = userDetailsService.loadUserByUsername(claims.getSubject());
+            Long userId = jwtService.getUserId(claims);
+            UserAuthSnapshot snapshot = userAuthCacheService.get(userId);
+            if (!snapshot.enabled()) {
+                throw new DisabledException("User is disabled");
+            }
+            SecurityUser user = new SecurityUser(snapshot);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
-        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException exception) {
+        } catch (JwtException | IllegalArgumentException | DisabledException | UsernameNotFoundException exception) {
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);

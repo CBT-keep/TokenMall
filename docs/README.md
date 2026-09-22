@@ -9,6 +9,7 @@
 ## 架构
 
 - `architecture/architecture.md`
+- `architecture/auth-cache.md`
 
 ## 数据库
 

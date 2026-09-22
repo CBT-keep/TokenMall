@@ -26,6 +26,14 @@ public class SecurityUser implements UserDetails {
         this.enabled = Integer.valueOf(1).equals(user.getStatus());
     }
 
+    public SecurityUser(UserAuthSnapshot snapshot) {
+        this.id = snapshot.userId();
+        this.username = snapshot.username();
+        this.password = null;
+        this.role = snapshot.role();
+        this.enabled = snapshot.enabled();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));

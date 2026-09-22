@@ -10,6 +10,8 @@ import com.tokenmall.common.exception.ErrorCode;
 import com.tokenmall.security.JwtService;
 import com.tokenmall.security.SecurityUser;
 import com.tokenmall.security.SecurityUtils;
+import com.tokenmall.security.UserAuthCacheService;
+import com.tokenmall.security.UserAuthSnapshot;
 import com.tokenmall.user.entity.SysUser;
 import com.tokenmall.user.entity.UserTokenAccount;
 import com.tokenmall.user.mapper.SysUserMapper;
@@ -18,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class AuthService {
     private final UserTokenAccountMapper userTokenAccountMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    private final UserAuthCacheService userAuthCacheService;
 
     @Transactional
     public UserView register(RegisterRequest request) {
@@ -58,29 +59,31 @@ public class AuthService {
         account.setTotalConsumed(0L);
         userTokenAccountMapper.insert(account);
 
+        userAuthCacheService.put(UserAuthSnapshot.from(user));
         return UserView.from(user);
     }
 
     public LoginResponse login(LoginRequest request) {
-        SecurityUser user;
-        try {
-            user = userDetailsService.loadUserByUsername(request.username());
-        } catch (UsernameNotFoundException exception) {
+        SysUser user = sysUserMapper.selectOne(
+                Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, request.username())
+        );
+        if (user == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户名或密码错误");
         }
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户名或密码错误");
         }
-        if (!user.isEnabled()) {
+        if (!Integer.valueOf(1).equals(user.getStatus())) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "账号已禁用");
         }
 
-        SysUser entity = sysUserMapper.selectById(user.getId());
+        UserAuthSnapshot snapshot = UserAuthSnapshot.from(user);
+        userAuthCacheService.put(snapshot);
         return new LoginResponse(
-                jwtService.generateToken(user),
+                jwtService.generateToken(new SecurityUser(snapshot)),
                 "Bearer",
                 jwtService.getExpiresSeconds(),
-                UserView.from(entity)
+                UserView.from(user)
         );
     }
 

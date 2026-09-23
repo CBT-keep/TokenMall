@@ -41,6 +41,9 @@ public class PaymentService {
                 Wrappers.<PaymentRecord>lambdaQuery().eq(PaymentRecord::getOrderNo, order.getOrderNo())
         );
         if (existing != null && "SUCCESS".equals(existing.getStatus())) {
+            if ("PAID".equals(order.getStatus())) {
+                orderService.markCompleted(order);
+            }
             return PaymentResponse.from(existing);
         }
 
@@ -61,6 +64,7 @@ public class PaymentService {
 
         orderService.markPaid(order);
         tokenGrantService.grantForOrder(order, orderService.items(order.getOrderNo()));
+        orderService.markCompleted(order);
         return PaymentResponse.from(payment);
     }
 

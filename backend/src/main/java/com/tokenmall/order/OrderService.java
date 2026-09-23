@@ -176,6 +176,14 @@ public class OrderService {
         orderMapper.updateById(order);
     }
 
+    @Transactional
+    public void markCompleted(MallOrder order) {
+        if (!"PAID".equals(order.getStatus())) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_INVALID);
+        }
+        changeStatus(order, "COMPLETED", "SYSTEM", "Token 已到账");
+    }
+
     private MallOrder createOrder(
             Long userId,
             String orderType,

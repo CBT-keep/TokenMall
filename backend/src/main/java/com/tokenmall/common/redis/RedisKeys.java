@@ -6,6 +6,11 @@ public final class RedisKeys {
     public static final String SKU_DETAIL = "mall:sku:detail:";
     public static final String PRODUCT_LIST = "mall:product:list:";
     public static final String SECKILL_ACTIVITY = "mall:seckill:activity:";
+    public static final String SECKILL_LIST = "mall:seckill:list:";
+    public static final String SECKILL_LIST_ALL = "mall:seckill:list:all:";
+    public static final String SECKILL_RECORDS = "mall:seckill:records:";
+    public static final int SECKILL_TTL = 30;
+    public static final String SECKILL_RESULT = "mall:seckill:result:";
     public static final String SECKILL_STOCK = "mall:seckill:stock:";
     public static final String SECKILL_USER = "mall:seckill:user:";
     public static final String LOCK_ORDER = "mall:lock:order:";
@@ -27,5 +32,17 @@ public final class RedisKeys {
 
     public static String seckillUser(Long activityId, Long userId) {
         return SECKILL_USER + activityId + ":" + userId;
+    }
+
+    public static String seckillActivity(Long activityId) {
+        return SECKILL_ACTIVITY + activityId;
+    }
+
+    public static String seckillRecords(Long activityId) {
+        return SECKILL_RECORDS + activityId;
+    }
+
+    public static String seckillResult(String requestId, Long userId) {
+        return SECKILL_RESULT + requestId + ":" + userId;
     }
 }

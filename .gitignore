@@ -31,6 +31,7 @@ logs/
 *.log
 data/
 *.pid
+perf/jmeter/results/
 
 # RabbitMQ local runtime
 .rabbitmq/

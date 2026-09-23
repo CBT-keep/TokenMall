@@ -16,25 +16,30 @@ TokenMall 是一个以 Redis、RabbitMQ 和 MySQL 为核心学习目标的模块
 
 ## 当前阶段
 
-当前仓库处于项目规划阶段，已经包含：
+项目骨架、基础 CRUD 和前后端页面已经跑通，目前按 14 天路线逐个复现并优化 MySQL、Redis、RabbitMQ 相关问题。
 
-- 产品需求和验收标准。
-- 14 天学习与开发路线。
-- 模块化单体架构设计。
-- 数据库设计和可执行 SQL 脚本。
-- REST API 契约。
-- Obsidian 知识库与教程框架。
-- RabbitMQ 本地安装和运行脚本。
+已包含：
 
-需求和知识库已经确认，下一步按 Day 01 至 Day 14 搭建后端与前端基础代码。
+- Spring Boot 3.3.5 + Java 17 后端：JWT 认证、商品与分类、购物车、订单、模拟支付、Token 账户、秒杀和管理端接口。
+- React 18 + Vite + TypeScript 前端：用户端页面、管理端页面和接口联调。
+- MySQL 表结构、种子数据和开发账号脚本。
+- Redis 商品缓存、认证缓存和秒杀预扣练习代码。
+- RabbitMQ 拓扑、生产者事件和本地运行脚本。
+- JMeter 压测计划，用于复现秒杀和缓存问题。
+- Obsidian 知识库、14 天教程和开发复盘。
+
+当前仍在学习路线中：秒杀限购与库存一致性、缓存穿透与热点 Key、RabbitMQ 可靠投递与消费幂等。
 
 ## 目录说明
 
 ```text
 .
+├─ backend/               Spring Boot 后端
+├─ frontend/              React + Vite 前端
 ├─ db/                    MySQL 初始化脚本
 ├─ docs/                  产品、架构、数据库、API、环境文档
 ├─ knowledge-vault/       Obsidian 知识库和 14 天教程
+├─ perf/jmeter/           JMeter 压测计划
 └─ scripts/               知识库索引和本地环境辅助脚本
 ```
 
@@ -48,6 +53,7 @@ TokenMall 是一个以 Redis、RabbitMQ 和 MySQL 为核心学习目标的模块
 4. `docs/architecture/architecture.md`
 5. `docs/operations/local-environment.md`
 6. `docs/operations/rabbitmq-installation.md`
+7. `perf/jmeter/README.md`
 
 知识库入口：
 
@@ -106,6 +112,12 @@ RabbitMQ 本地安装位置：
 ```
 
 该命令会停止前端、Redis 和 RabbitMQ，不会停止 IDEA 管理的后端。
+
+## 本地配置
+
+后端连接信息集中在 `backend/src/main/resources/application.yml`，并支持环境变量覆盖，例如 `MYSQL_HOST`、`MYSQL_USERNAME`、`MYSQL_PASSWORD`、`REDIS_HOST`、`REDIS_PASSWORD`、`RABBITMQ_USERNAME`、`RABBITMQ_PASSWORD`、`JWT_SECRET`。
+
+配置文件中的默认值是本地开发占位值，部署到其他环境前必须替换。
 
 ## 项目原则
 

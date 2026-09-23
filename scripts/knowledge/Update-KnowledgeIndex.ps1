@@ -13,6 +13,16 @@ $logRoot = Join-Path $vaultRoot "09-Logs"
 $lf = "`n"
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
+# Git 输出 UTF-8。Windows PowerShell 5.1 默认按 OEM 代码页解码原生命令输出，
+# 会让中文提交说明变成乱码并串行，这里显式切换到 UTF-8。
+try {
+    [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+    $OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+}
+catch {
+    Write-Warning "Unable to switch native command encoding to UTF-8: $($_.Exception.Message)"
+}
+
 function Write-ManagedSection {
     param(
         [string]$Path,

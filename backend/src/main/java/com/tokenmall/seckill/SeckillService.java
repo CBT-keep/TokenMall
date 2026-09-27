@@ -10,6 +10,7 @@ import com.tokenmall.catalog.entity.Product;
 import com.tokenmall.catalog.entity.ProductSku;
 import com.tokenmall.common.exception.BusinessException;
 import com.tokenmall.common.exception.ErrorCode;
+import com.tokenmall.common.redis.CacheTtl;
 import com.tokenmall.common.redis.RedisKeys;
 import com.tokenmall.order.OrderService;
 import com.tokenmall.order.dto.OrderDetailResponse;
@@ -21,6 +22,7 @@ import com.tokenmall.seckill.entity.SeckillActivity;
 import com.tokenmall.seckill.entity.SeckillRecord;
 import com.tokenmall.seckill.mapper.SeckillActivityMapper;
 import com.tokenmall.seckill.mapper.SeckillRecordMapper;
+import com.tokenmall.utils.bloomFilter.BloomFilterUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -32,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +53,7 @@ public class SeckillService {
                     "local perUserLimit = tonumber(ARGV[2])\n" +
                     "local requestId = ARGV[3]\n" +
                     "local ttlSeconds = ARGV[4]\n" +
+                    "local stockTtlSeconds = ARGV[5]\n" +
                     "local requestField = 'req:' .. requestId\n" +
                     "if redis.call('HEXISTS', userKey, requestField) == 1 then\n" +
                     "    return 2\n" +
@@ -66,6 +70,7 @@ public class SeckillService {
                     "    return 0\n" +
                     "end\n" +
                     "redis.call('DECRBY', stockKey, quantity)\n" +
+                    "redis.call('EXPIRE', stockKey, stockTtlSeconds)\n" +
                     "redis.call('HINCRBY', userKey, 'quantity', quantity)\n" +
                     "redis.call('HSET', userKey, requestField, quantity)\n" +
                     "redis.call('EXPIRE', userKey, ttlSeconds)\n" +
@@ -110,6 +115,7 @@ public class SeckillService {
     private final OrderService orderService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final BloomFilterUtil bloomFilterUtil;
 
     // 获取秒杀活动列表
     // 使用Redis缓存秒杀活动列表
@@ -131,8 +137,12 @@ public class SeckillService {
                 .map(SeckillActivityResponse::from)
                 .toList();
 
-        redisTemplate.opsForValue().set(key, toJson(list));
-        redisTemplate.expire(key, RedisKeys.SECKILL_TTL, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(
+                key,
+                toJson(list),
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
+                TimeUnit.SECONDS
+        );
         return withLiveStock(list);
     }
 
@@ -159,14 +169,16 @@ public class SeckillService {
         String stockKey = RedisKeys.seckillStock(activityId);
         String userKey = RedisKeys.seckillUser(activityId, userId);
         long ttlSeconds = seckillTtlSeconds(activity.getEndTime());
+        long stockTtlSeconds = seckillTtlSeconds(activity.getEndTime());
         int perUserLimit = activity.getPerUserLimit() == null ? 1 : activity.getPerUserLimit();
-        ensureStockCache(activity);
 
         // 预占库存
-        Long reservation = reserve(userKey, stockKey, request.quantity(), perUserLimit, request.requestId(), ttlSeconds);
+        Long reservation = reserve(userKey, stockKey, request.quantity(), perUserLimit,
+                request.requestId(), ttlSeconds, stockTtlSeconds);
         if (reservation != null && reservation == -2L) {
             ensureStockCache(activity);
-            reservation = reserve(userKey, stockKey, request.quantity(), perUserLimit, request.requestId(), ttlSeconds);
+            reservation = reserve(userKey, stockKey, request.quantity(), perUserLimit,
+                    request.requestId(), ttlSeconds, stockTtlSeconds);
         }
         if (reservation == null) {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR, "秒杀库存预占失败");
@@ -227,10 +239,10 @@ public class SeckillService {
             redisTemplate.opsForValue().set(
                     RedisKeys.seckillResult(request.requestId(), userId),
                     toJson(response),
-                    RedisKeys.SECKILL_TTL,
-                    TimeUnit.MINUTES
+                    CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
+                    TimeUnit.SECONDS
             );
-            evictPurchaseCaches(activityId);
+            evictPurchaseRecordCache(activityId);
             return response;
         }
         catch (DuplicateKeyException exception) {
@@ -287,8 +299,12 @@ public class SeckillService {
                 record.getErrorMessage()
         );
 
-        redisTemplate.opsForValue().set(key, toJson(response));
-        redisTemplate.expire(key, RedisKeys.SECKILL_TTL, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(
+                key,
+                toJson(response),
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
+                TimeUnit.SECONDS
+        );
         return response;
     }
 
@@ -308,8 +324,12 @@ public class SeckillService {
                 .map(SeckillActivityResponse::from)
                 .toList();
 
-        redisTemplate.opsForValue().set(key, toJson(list));
-        redisTemplate.expire(key, RedisKeys.SECKILL_TTL, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(
+                key,
+                toJson(list),
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
+                TimeUnit.SECONDS
+        );
         return withLiveStock(list);
     }
 
@@ -321,6 +341,7 @@ public class SeckillService {
         activity.setSoldCount(0);
         activity.setDeleted(0);
         activityMapper.insert(activity);
+        bloomFilterUtil.add(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activity.getId()));
         evictActivityListCaches();
         return activity;
     }
@@ -359,8 +380,12 @@ public class SeckillService {
                         .orderByDesc(SeckillRecord::getCreatedAt)
         );
 
-        redisTemplate.opsForValue().set(key, toJson(records));
-        redisTemplate.expire(key, RedisKeys.SECKILL_TTL, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(
+                key,
+                toJson(records),
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
+                TimeUnit.SECONDS
+        );
         return records;
     }
 
@@ -373,13 +398,24 @@ public class SeckillService {
             return fromJson(json, new TypeReference<SeckillActivity>() {});
         }
 
+        // 布隆过滤器明确判定不存在时直接返回，避免无效 ID 打到数据库
+        if (bloomFilterUtil.definitelyAbsent(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activityId))) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "秒杀活动不存在");
+        }
+
         SeckillActivity activity = activityMapper.selectById(activityId);
         if (activity == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "秒杀活动不存在");
         }
 
-        redisTemplate.opsForValue().set(key, toJson(activity));
-        redisTemplate.expire(key, RedisKeys.SECKILL_TTL, TimeUnit.MINUTES);
+        // 过滤器漏判或 Redis 位图丢失后，通过真实查询结果补写
+        bloomFilterUtil.add(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activity.getId()));
+        redisTemplate.opsForValue().set(
+                key,
+                toJson(activity),
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
+                TimeUnit.SECONDS
+        );
         return activity;
     }
 
@@ -424,7 +460,8 @@ public class SeckillService {
             int quantity,
             int perUserLimit,
             String requestId,
-            long ttlSeconds
+            long ttlSeconds,
+            long stockTtlSeconds
     ) {
         return redisTemplate.execute(
                 SECKILL_SCRIPT,
@@ -432,11 +469,16 @@ public class SeckillService {
                 String.valueOf(quantity),
                 String.valueOf(perUserLimit),
                 requestId,
-                String.valueOf(ttlSeconds)
+                String.valueOf(ttlSeconds),
+                String.valueOf(stockTtlSeconds)
         );
     }
 
-    // 确保秒杀库存缓存，避免重复加载
+    /**
+     * 确保秒杀库存缓存存在
+     * @param activity 秒杀活动
+     * @throws BusinessException 秒杀活动不存在
+     */
     private void ensureStockCache(SeckillActivity activity) {
         String stockKey = RedisKeys.seckillStock(activity.getId());
         long ttlSeconds = seckillTtlSeconds(activity.getEndTime());
@@ -451,10 +493,12 @@ public class SeckillService {
         }
 
         int remaining = Math.max(0, latest.getSeckillStock() - latest.getSoldCount());
-        Boolean created = redisTemplate.opsForValue().setIfAbsent(stockKey, String.valueOf(remaining));
-        if (Boolean.TRUE.equals(created)) {
-            redisTemplate.expire(stockKey, seckillTtlSeconds(latest.getEndTime()), TimeUnit.SECONDS);
-        }
+        redisTemplate.opsForValue().setIfAbsent(
+                stockKey,
+                String.valueOf(remaining),
+                seckillTtlSeconds(latest.getEndTime()),
+                TimeUnit.SECONDS
+        );
     }
 
     // 计算秒杀库存缓存的过期时间
@@ -498,12 +542,9 @@ public class SeckillService {
         }
     }
 
-    // 秒杀购买只清理当前活动相关缓存，不清理全局活动列表
-    private void evictPurchaseCaches(Long activityId) {
-        redisTemplate.delete(List.of(
-                RedisKeys.seckillActivity(activityId),
-                RedisKeys.seckillRecords(activityId)
-        ));
+    // 购买成功只让记录列表失效；活动详情中的库存和销量由 Redis 计数实时覆盖
+    private void evictPurchaseRecordCache(Long activityId) {
+        redisTemplate.delete(RedisKeys.seckillRecords(activityId));
     }
 
     // 将对象写入Redis
@@ -518,11 +559,26 @@ public class SeckillService {
     // 列表缓存只保存配置类字段，库存和销量以 Redis 预占计数为准
     // 这样购买动作不需要频繁失效整份列表缓存，也不会长期展示旧库存
     private List<SeckillActivityResponse> withLiveStock(List<SeckillActivityResponse> list) {
-        return list.stream().map(this::withLiveStock).toList();
+        if (list.isEmpty()) {
+            return list;
+        }
+        List<String> stockKeys = list.stream()
+                .map(item -> RedisKeys.seckillStock(item.id()))
+                .toList();
+        List<String> stocks = redisTemplate.opsForValue().multiGet(stockKeys);
+        List<SeckillActivityResponse> result = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            result.add(withLiveStock(list.get(i), stocks == null ? null : stocks.get(i)));
+        }
+        return result;
     }
 
+    // 将秒杀活动详情中的库存和销量更新为 Redis 预占计数
     private SeckillActivityResponse withLiveStock(SeckillActivityResponse item) {
-        String remaining = redisTemplate.opsForValue().get(RedisKeys.seckillStock(item.id()));
+        return withLiveStock(item, redisTemplate.opsForValue().get(RedisKeys.seckillStock(item.id())));
+    }
+
+    private SeckillActivityResponse withLiveStock(SeckillActivityResponse item, String remaining) {
         if (remaining == null) {
             return item;
         }

@@ -15,8 +15,10 @@ import com.tokenmall.catalog.entity.Product;
 import com.tokenmall.catalog.mapper.ProductMapper;
 import com.tokenmall.common.exception.BusinessException;
 import com.tokenmall.common.exception.ErrorCode;
+import com.tokenmall.common.redis.CacheTtl;
 import com.tokenmall.common.redis.RedisKeys;
 import com.tokenmall.common.web.PageResult;
+import com.tokenmall.utils.bloomFilter.BloomFilterUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class ProductService {
     private final SkuService skuService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final BloomFilterUtil bloomFilterUtil;
 
     /**
      * 分页查询商品列表
@@ -44,13 +47,14 @@ public class ProductService {
      */
     public PageResult<ProductSummaryResponse> list(String type, long page, long size) throws JsonProcessingException {
         // 使用Redis缓存商品列表
-        String key= RedisKeys.PRODUCT_LIST + "page:" + page + ":size:" + size;
+        String key= RedisKeys.PRODUCT_LIST + "type:" + type +  "page:" + page + ":size:" + size;
         String json = redisTemplate.opsForValue().get(key);
         // 缓存命中时直接返回
         if (StringUtils.hasText(json)) {
             return objectMapper.readValue(
                     json,
-                    new TypeReference<PageResult<ProductSummaryResponse>>() {}
+                    new TypeReference<>() {
+                    }
             );
         }
 
@@ -68,16 +72,28 @@ public class ProductService {
         // 使用Mybatis Plus的分页查询方法
         IPage<Product> result = productMapper.selectPage(Page.of(page, size), query);
 
-        // 将查询结果写入Redis缓存
-        redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(result), 10, TimeUnit.MINUTES);
+        // 将查到的result转换为PageResult<ProductSummaryResponse>
+        List<ProductSummaryResponse> records = result.getRecords().stream()
+                .map(ProductSummaryResponse::from)
+                .toList();
 
-        // 返回分页结果
-        return new PageResult<>(
-                result.getRecords().stream().map(ProductSummaryResponse::from).toList(),
+        PageResult<ProductSummaryResponse> pageResult = new PageResult<>(
+                records,
                 result.getCurrent(),
                 result.getSize(),
                 result.getTotal()
         );
+
+        // 将查询结果写入Redis缓存
+        redisTemplate.opsForValue().set(
+                key,
+                objectMapper.writeValueAsString(pageResult),
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(10)),
+                TimeUnit.SECONDS
+        );
+
+        // 返回分页结果
+        return pageResult;
     }
 
     /**
@@ -96,8 +112,8 @@ public class ProductService {
 
     /**
      * 根据id查询商品详情
-      * @param id 商品id
-      * @return 商品详情
+     * @param id 商品id
+     * @return 商品详情
      */
     public ProductDetailResponse detail(Long id) {
         Product product = get(id);
@@ -122,8 +138,9 @@ public class ProductService {
         redisTemplate.opsForValue().set(
                 skuKey,
                 JSONUtil.toJsonStr(skus),
-                30,
-                TimeUnit.MINUTES);
+                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(30)),
+                TimeUnit.SECONDS
+        );
 
         return ProductDetailResponse.from(product, skus);
     }
@@ -131,13 +148,14 @@ public class ProductService {
     /**
      * 创建商品
      * @param request 商品信息
-      * @return 商品信息
+     * @return 商品信息
      */
     public Product create(ProductRequest request) {
         Product product = new Product();
         apply(product, request);
         product.setDeleted(0);
         productMapper.insert(product);
+        bloomFilterUtil.add(RedisKeys.BLOOM_PRODUCT, String.valueOf(product.getId()));
         return product;
     }
 
@@ -176,8 +194,8 @@ public class ProductService {
 
     /**
      * 根据id获取商品
-      * @param id 商品id
-      * @return 商品信息
+     * @param id 商品id
+     * @return 商品信息
      */
     public Product get(Long id) {
         // 被大量访问，使用缓存减轻数据库压力
@@ -189,12 +207,24 @@ public class ProductService {
             return JSONUtil.toBean(value, Product.class);
         }
 
+        // 布隆过滤器明确判定不存在时直接返回，避免无效 ID 打到数据库
+        if (bloomFilterUtil.definitelyAbsent(RedisKeys.BLOOM_PRODUCT, String.valueOf(id))) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+
         // 缓存中不存在，从数据库中获取并放入缓存
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
         }
-        redisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(product), 1, TimeUnit.DAYS);
+        // 过滤器漏判或 Redis 位图丢失后，通过真实查询结果补写
+        bloomFilterUtil.add(RedisKeys.BLOOM_PRODUCT, String.valueOf(product.getId()));
+        redisTemplate.opsForValue().set(
+                key,
+                JSONUtil.toJsonStr(product),
+                CacheTtl.jitterSeconds(TimeUnit.DAYS.toSeconds(1)),
+                TimeUnit.SECONDS
+        );
 
         // 返回从数据库中获取的商品
         return product;

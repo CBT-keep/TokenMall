@@ -1,4 +1,4 @@
-package com.tokenmall.order.utils.idUtil;
+package com.tokenmall.utils.idUtil;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

@@ -6,14 +6,14 @@ spring:
     name: token-mall-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:token_mall}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:token_mall}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME:token_mall_dev}
     password: ${MYSQL_PASSWORD:ChangeMe_123456}
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:127.0.0.1}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:123456}
+      password: ${REDIS_PASSWORD:}
       timeout: 2s
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
@@ -40,6 +40,8 @@ mybatis-plus:
       logic-not-delete-value: 0
 
 tokenmall:
+  bloom:
+    retry-interval-ms: ${BLOOM_RETRY_INTERVAL_MS:60000}
   jwt:
     secret: ${JWT_SECRET:tokenmall-local-dev-secret-change-me-32-bytes}
     expires-seconds: ${JWT_EXPIRES_SECONDS:7200}

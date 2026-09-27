@@ -1,3 +1,4 @@
+import type { AxiosRequestConfig } from 'axios';
 import { get } from './client';
 import type { Category, PageResult, ProductDetail, ProductSummary } from '../types/api';
 
@@ -9,6 +10,6 @@ export function listProducts(type?: string, page = 1, size = 20): Promise<PageRe
   return get<PageResult<ProductSummary>>('/products', { type, page, size });
 }
 
-export function getProduct(id: number): Promise<ProductDetail> {
-  return get<ProductDetail>(`/products/${id}`);
+export function getProduct(id: number, config?: AxiosRequestConfig): Promise<ProductDetail> {
+  return get<ProductDetail>(`/products/${id}`, undefined, config);
 }

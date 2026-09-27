@@ -20,7 +20,7 @@ import com.tokenmall.order.entity.OrderStatusLog;
 import com.tokenmall.order.mapper.MallOrderItemMapper;
 import com.tokenmall.order.mapper.MallOrderMapper;
 import com.tokenmall.order.mapper.OrderStatusLogMapper;
-import com.tokenmall.order.utils.idUtil.IdUtils;
+import com.tokenmall.utils.idUtil.IdUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

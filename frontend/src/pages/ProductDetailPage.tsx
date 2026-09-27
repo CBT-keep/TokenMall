@@ -1,35 +1,57 @@
 import { ShoppingCartOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import { Button, Card, Descriptions, InputNumber, message, Radio, Skeleton, Space, Typography } from 'antd';
+import { Button, Card, Descriptions, InputNumber, message, Radio, Result, Skeleton, Space, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addCartItem } from '../api/cart';
 import { getProduct } from '../api/catalog';
-import { errorMessage } from '../api/client';
+import { errorMessage, isCanceled, isNotFound } from '../api/client';
 import { createDirectOrder } from '../api/orders';
 import { newRequestId } from '../components/RequestId';
 import type { ProductDetail } from '../types/api';
+
+const DETAIL_TIMEOUT_MS = 5000;
+type LoadStatus = 'loading' | 'ready' | 'notFound' | 'error';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<ProductDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<LoadStatus>('loading');
+  const [retryKey, setRetryKey] = useState(0);
   const [skuId, setSkuId] = useState<number>();
   const [quantity, setQuantity] = useState(1);
   const [pendingAction, setPendingAction] = useState<'cart' | 'buy'>();
 
   useEffect(() => {
-    if (!id) {
+    const productId = Number(id);
+    if (!id || !Number.isFinite(productId)) {
+      setStatus('notFound');
       return;
     }
-    getProduct(Number(id))
+    const controller = new AbortController();
+    setStatus('loading');
+    setProduct(null);
+    setSkuId(undefined);
+
+    getProduct(productId, { signal: controller.signal, timeout: DETAIL_TIMEOUT_MS })
       .then((data) => {
         setProduct(data);
         setSkuId(data.skus[0]?.id);
+        setStatus('ready');
       })
-      .catch((error) => message.error(errorMessage(error)))
-      .finally(() => setLoading(false));
-  }, [id]);
+      .catch((error) => {
+        if (isCanceled(error)) {
+          return;
+        }
+        if (isNotFound(error)) {
+          setStatus('notFound');
+          return;
+        }
+        setStatus('error');
+      });
+
+    return () => controller.abort();
+  }, [id, retryKey]);
 
   const selectedSku = useMemo(
     () => product?.skus.find((sku) => sku.id === skuId),
@@ -69,11 +91,37 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return <div className="page-shell"><Skeleton active /></div>;
   }
+  if (status === 'notFound') {
+    return (
+      <div className="page-shell">
+        <Result
+          status="404"
+          title="商品不存在"
+          subTitle="该商品可能已下架或已被删除"
+          extra={<Button type="primary" onClick={() => navigate('/products')}>返回商品列表</Button>}
+        />
+      </div>
+    );
+  }
   if (!product) {
-    return <div className="page-shell">商品不存在</div>;
+    return (
+      <div className="page-shell">
+        <Result
+          status="warning"
+          title="商品加载失败"
+          subTitle="网络异常或服务暂时不可用，请稍后重试"
+          extra={
+            <Space>
+              <Button type="primary" onClick={() => setRetryKey((value) => value + 1)}>重试</Button>
+              <Button onClick={() => navigate(-1)}>返回</Button>
+            </Space>
+          }
+        />
+      </div>
+    );
   }
 
   return (

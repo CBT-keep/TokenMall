@@ -13,6 +13,8 @@ public final class RedisKeys {
     public static final String SECKILL_RESULT = "mall:seckill:result:";
     public static final String SECKILL_STOCK = "mall:seckill:stock:";
     public static final String SECKILL_USER = "mall:seckill:user:";
+    public static final String BLOOM_PRODUCT = "mall:bloom:product";
+    public static final String BLOOM_SECKILL_ACTIVITY = "mall:bloom:seckill:activity";
     // 与 SECKILL_SCRIPT 中的 Hash 字段名保持一致
     public static final String SECKILL_USER_QUANTITY_FIELD = "quantity";
     public static final String LOCK_ORDER = "mall:lock:order:";

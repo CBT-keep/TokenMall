@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import type { ApiResponse } from '../types/api';
 
 const TOKEN_KEY = 'tokenmall.accessToken';
@@ -29,8 +30,12 @@ client.interceptors.response.use(
   },
 );
 
-export async function get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await client.get<ApiResponse<T>>(url, { params });
+export async function get<T>(
+  url: string,
+  params?: Record<string, unknown>,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  const response = await client.get<ApiResponse<T>>(url, { ...config, params });
   return response.data.data;
 }
 
@@ -85,4 +90,12 @@ export function errorMessage(error: unknown): string {
     return error.response?.data?.message ?? error.message;
   }
   return error instanceof Error ? error.message : '请求失败';
+}
+
+export function isNotFound(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404;
+}
+
+export function isCanceled(error: unknown): boolean {
+  return axios.isCancel(error);
 }

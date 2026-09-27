@@ -19,6 +19,7 @@ public final class RedisKeys {
     public static final String SECKILL_USER_QUANTITY_FIELD = "quantity";
     public static final String LOCK_ORDER = "mall:lock:order:";
     public static final String LOCK_SECKILL = "mall:lock:seckill:";
+    public static final String LOCK_CACHE_REFRESH = "mall:lock:cache:refresh:";
     public static final String IDEMPOTENCY_ORDER = "mall:idempotency:order:";
     public static final String RATE_SECKILL = "mall:rate:seckill:";
     public static final String TOKEN_ACCOUNT = "mall:token:account:";
@@ -48,5 +49,9 @@ public final class RedisKeys {
 
     public static String seckillResult(String requestId, Long userId) {
         return SECKILL_RESULT + requestId + ":" + userId;
+    }
+
+    public static String cacheRefreshLock(String cacheKey) {
+        return LOCK_CACHE_REFRESH + cacheKey;
     }
 }

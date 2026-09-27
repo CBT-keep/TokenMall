@@ -1,6 +1,5 @@
 package com.tokenmall.catalog;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -16,6 +15,8 @@ import com.tokenmall.catalog.mapper.ProductMapper;
 import com.tokenmall.common.exception.BusinessException;
 import com.tokenmall.common.exception.ErrorCode;
 import com.tokenmall.common.redis.CacheTtl;
+import com.tokenmall.common.redis.LogicalCacheSupport;
+import com.tokenmall.common.redis.LogicalCacheValue;
 import com.tokenmall.common.redis.RedisKeys;
 import com.tokenmall.common.web.PageResult;
 import com.tokenmall.utils.bloomFilter.BloomFilterUtil;
@@ -32,11 +33,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
 
+    private static final TypeReference<LogicalCacheValue<Product>> PRODUCT_CACHE_TYPE =
+            new TypeReference<>() {
+            };
+    private static final TypeReference<LogicalCacheValue<List<SkuResponse>>> SKU_CACHE_TYPE =
+            new TypeReference<>() {
+            };
+    private static final long DETAIL_LOGICAL_TTL_SECONDS = TimeUnit.MINUTES.toSeconds(30);
+    private static final long DETAIL_PHYSICAL_TTL_SECONDS = TimeUnit.HOURS.toSeconds(2);
+
     private final ProductMapper productMapper;
     private final SkuService skuService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final BloomFilterUtil bloomFilterUtil;
+    private final LogicalCacheSupport logicalCacheSupport;
 
     /**
      * 分页查询商品列表
@@ -119,27 +130,15 @@ public class ProductService {
         Product product = get(id);
 
         String skuKey = RedisKeys.SKU_DETAIL + id;
-
-        String json = redisTemplate.opsForValue().get(skuKey);
-
-        // 缓存命中时直接返回
-        if (StringUtils.hasText(json)) {
-            List<SkuResponse> skus = JSONUtil.toList(json, SkuResponse.class);
-            return ProductDetailResponse.from(product, skus);
-        }
-
-        // 未命中：查库并构建 SKU 列表
-        List<SkuResponse> skus = skuService.listByProduct(id)
-                .stream()
-                .map(skuService::toResponse)
-                .collect(Collectors.toList());
-
-        // 将 SKU 列表写入缓存
-        redisTemplate.opsForValue().set(
+        List<SkuResponse> skus = logicalCacheSupport.getOrLoad(
                 skuKey,
-                JSONUtil.toJsonStr(skus),
-                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(30)),
-                TimeUnit.SECONDS
+                SKU_CACHE_TYPE,
+                DETAIL_LOGICAL_TTL_SECONDS,
+                DETAIL_PHYSICAL_TTL_SECONDS,
+                () -> skuService.listByProduct(id)
+                        .stream()
+                        .map(skuService::toResponse)
+                        .collect(Collectors.toList())
         );
 
         return ProductDetailResponse.from(product, skus);
@@ -198,35 +197,29 @@ public class ProductService {
      * @return 商品信息
      */
     public Product get(Long id) {
-        // 被大量访问，使用缓存减轻数据库压力
         String key = RedisKeys.PRODUCT_DETAIL + id;
-        String value = redisTemplate.opsForValue().get(key);
-
-        // 缓存中存在，直接返回
-        if (value != null) {
-            return JSONUtil.toBean(value, Product.class);
-        }
-
-        // 布隆过滤器明确判定不存在时直接返回，避免无效 ID 打到数据库
-        if (bloomFilterUtil.definitelyAbsent(RedisKeys.BLOOM_PRODUCT, String.valueOf(id))) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
-        }
-
-        // 缓存中不存在，从数据库中获取并放入缓存
-        Product product = productMapper.selectById(id);
+        Product product = logicalCacheSupport.getOrLoad(
+                key,
+                PRODUCT_CACHE_TYPE,
+                DETAIL_LOGICAL_TTL_SECONDS,
+                DETAIL_PHYSICAL_TTL_SECONDS,
+                () -> loadProduct(id)
+        );
         if (product == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
         }
-        // 过滤器漏判或 Redis 位图丢失后，通过真实查询结果补写
-        bloomFilterUtil.add(RedisKeys.BLOOM_PRODUCT, String.valueOf(product.getId()));
-        redisTemplate.opsForValue().set(
-                key,
-                JSONUtil.toJsonStr(product),
-                CacheTtl.jitterSeconds(TimeUnit.DAYS.toSeconds(1)),
-                TimeUnit.SECONDS
-        );
+        return product;
+    }
 
-        // 返回从数据库中获取的商品
+    private Product loadProduct(Long id) {
+        if (bloomFilterUtil.definitelyAbsent(RedisKeys.BLOOM_PRODUCT, String.valueOf(id))) {
+            return null;
+        }
+        Product product = productMapper.selectById(id);
+        if (product != null) {
+            // 过滤器漏判或 Redis 位图丢失后，通过真实查询结果补写
+            bloomFilterUtil.add(RedisKeys.BLOOM_PRODUCT, String.valueOf(product.getId()));
+        }
         return product;
     }
 

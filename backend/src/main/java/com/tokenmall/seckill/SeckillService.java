@@ -11,6 +11,8 @@ import com.tokenmall.catalog.entity.ProductSku;
 import com.tokenmall.common.exception.BusinessException;
 import com.tokenmall.common.exception.ErrorCode;
 import com.tokenmall.common.redis.CacheTtl;
+import com.tokenmall.common.redis.LogicalCacheSupport;
+import com.tokenmall.common.redis.LogicalCacheValue;
 import com.tokenmall.common.redis.RedisKeys;
 import com.tokenmall.order.OrderService;
 import com.tokenmall.order.dto.OrderDetailResponse;
@@ -42,6 +44,12 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class SeckillService {
+
+    private static final TypeReference<LogicalCacheValue<SeckillActivity>> ACTIVITY_CACHE_TYPE =
+            new TypeReference<>() {
+            };
+    private static final long ACTIVITY_LOGICAL_TTL_SECONDS = RedisKeys.SECKILL_TTL;
+    private static final long ACTIVITY_PHYSICAL_TTL_SECONDS = TimeUnit.MINUTES.toSeconds(10);
 
     // 库存预占脚本：一次原子完成 重复请求校验、限购校验、库存校验、库存扣减和用户记录
     // 用户 key 使用 Hash 保存：quantity 是已购总数，req:{requestId} 是本次请求预占的数量
@@ -116,6 +124,7 @@ public class SeckillService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final BloomFilterUtil bloomFilterUtil;
+    private final LogicalCacheSupport logicalCacheSupport;
 
     // 获取秒杀活动列表
     // 使用Redis缓存秒杀活动列表
@@ -393,29 +402,28 @@ public class SeckillService {
     // 使用Redis缓存秒杀活动详情
     public SeckillActivity getActivity(Long activityId) {
         String key = RedisKeys.seckillActivity(activityId);
-        String json = redisTemplate.opsForValue().get(key);
-        if (StringUtils.hasText(json)) {
-            return fromJson(json, new TypeReference<SeckillActivity>() {});
-        }
-
-        // 布隆过滤器明确判定不存在时直接返回，避免无效 ID 打到数据库
-        if (bloomFilterUtil.definitelyAbsent(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activityId))) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "秒杀活动不存在");
-        }
-
-        SeckillActivity activity = activityMapper.selectById(activityId);
+        SeckillActivity activity = logicalCacheSupport.getOrLoad(
+                key,
+                ACTIVITY_CACHE_TYPE,
+                ACTIVITY_LOGICAL_TTL_SECONDS,
+                ACTIVITY_PHYSICAL_TTL_SECONDS,
+                () -> loadActivity(activityId)
+        );
         if (activity == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "秒杀活动不存在");
         }
+        return activity;
+    }
 
-        // 过滤器漏判或 Redis 位图丢失后，通过真实查询结果补写
-        bloomFilterUtil.add(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activity.getId()));
-        redisTemplate.opsForValue().set(
-                key,
-                toJson(activity),
-                CacheTtl.jitterSeconds(TimeUnit.MINUTES.toSeconds(RedisKeys.SECKILL_TTL)),
-                TimeUnit.SECONDS
-        );
+    private SeckillActivity loadActivity(Long activityId) {
+        if (bloomFilterUtil.definitelyAbsent(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activityId))) {
+            return null;
+        }
+        SeckillActivity activity = activityMapper.selectById(activityId);
+        if (activity != null) {
+            // 过滤器漏判或 Redis 位图丢失后，通过真实查询结果补写
+            bloomFilterUtil.add(RedisKeys.BLOOM_SECKILL_ACTIVITY, String.valueOf(activity.getId()));
+        }
         return activity;
     }
 
